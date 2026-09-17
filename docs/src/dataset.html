@@ -103,56 +103,140 @@
                     <h1 class="modulename">
 <a href="./../src.html">src</a><wbr>.dataset    </h1>
 
-                
+                        <div class="docstring"><p>Dataset and DataModule definitions for AI text detection.</p>
+
+<p>This module handles loading tabular text metrics from CSV files,
+converting features into tensors, and supplying PyTorch DataLoaders
+via a LightningDataModule.</p>
+</div>
+
                         <input id="mod-dataset-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-dataset-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytorch_lightning</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataLoader</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">torchvision</span><span class="w"> </span><span class="kn">import</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">transforms</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CSVDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csv_path</span><span class="o">=</span><span class="s2">"../data/benchmark_ai_detection_multimodel_2026.csv"</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">feature_columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">'id'</span><span class="p">,</span> <span class="s1">'timestamp'</span><span class="p">,</span> <span class="s1">'is_ai_generated'</span><span class="p">,</span><span class="s1">'text_content'</span><span class="p">,</span> <span class="s1">'source_model'</span><span class="p">])</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">label_column</span> <span class="o">=</span> <span class="s1">'is_ai_generated'</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_columns</span><span class="p">])</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'float32'</span><span class="p">)</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_column</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'int64'</span><span class="p">)</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>        
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>    
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>        <span class="n">X</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>        <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>        <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CSVDataModule</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningDataModule</span><span class="p">):</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="s2">"../data/benchmark_ai_detection_multimodel_2026.csv"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">=</span> <span class="n">data_dir</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">()</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>        
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_ds</span> <span class="o">=</span> <span class="n">CSVDataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="p">)</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>    
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>        <span class="k">return</span> <span class="n">DataLoader</span><span class="p">(</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_ds</span><span class="p">,</span> 
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>            <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> 
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>            <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> 
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>            <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>        <span class="p">)</span>   
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>    
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_dataloader</span><span class="p">(</span><span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>        
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">"""Dataset and DataModule definitions for AI text detection.</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="sd">This module handles loading tabular text metrics from CSV files,</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="sd">converting features into tensors, and supplying PyTorch DataLoaders</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="sd">via a LightningDataModule.</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="sd">"""</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytorch_lightning</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataLoader</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">torchvision</span><span class="w"> </span><span class="kn">import</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">transforms</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CSVDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="w">    </span><span class="sd">"""PyTorch Dataset for tabular AI text detection data.</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">    Extracts statistical text features (e.g. word count, perplexity,</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">    readability) and binary AI-generation labels from a CSV file.</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">    Attributes:</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="sd">        df (pd.DataFrame): Raw dataframe loaded from the CSV file.</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">        transform (callable, optional): Optional transform applied to samples.</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">        feature_columns (pd.Index): Selected feature column names.</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">        label_column (str): Name of the label column ('is_ai_generated').</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">        X (np.ndarray): Preprocessed feature array (float32).</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">        y (np.ndarray): Target labels array (int64).</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">    """</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csv_path</span><span class="o">=</span><span class="s2">"../data/benchmark_ai_detection_multimodel_2026.csv"</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="w">        </span><span class="sd">"""Initializes the dataset from a CSV file.</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="sd">        Args:</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">            csv_path (str): Path to the CSV dataset file.</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="sd">            transform (callable, optional): Optional data transformation. Defaults to None.</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">        """</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">feature_columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">'id'</span><span class="p">,</span> <span class="s1">'timestamp'</span><span class="p">,</span> <span class="s1">'is_ai_generated'</span><span class="p">,</span><span class="s1">'text_content'</span><span class="p">,</span> <span class="s1">'source_model'</span><span class="p">])</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">label_column</span> <span class="o">=</span> <span class="s1">'is_ai_generated'</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_columns</span><span class="p">])</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'float32'</span><span class="p">)</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_column</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'int64'</span><span class="p">)</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>        
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="w">        </span><span class="sd">"""Returns the total number of samples in the dataset.</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="sd">        Returns:</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a><span class="sd">            int: Number of samples in the dataset.</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="sd">        """</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>    
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="w">        </span><span class="sd">"""Retrieves the feature tensor and label for a sample at the given index.</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd">        Args:</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">            idx (int): Index of the sample to retrieve.</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">        Returns:</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">            tuple[torch.Tensor, torch.Tensor]: Tuple containing the feature tensor (X)</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="sd">                and the target label tensor (y).</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">        """</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>        <span class="n">X</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>        <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>        <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CSVDataModule</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningDataModule</span><span class="p">):</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="w">    </span><span class="sd">"""PyTorch Lightning DataModule for managing training and prediction DataLoaders.</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">    Encapsulates dataset preparation and DataLoader instantiation for model training</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">    and inference pipelines.</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="sd">    Example:</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="sd">        &gt;&gt;&gt; data_module = CSVDataModule(data_dir="data/dataset.csv", batch_size=32)</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="sd">        &gt;&gt;&gt; data_module.setup()</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="sd">        &gt;&gt;&gt; loader = data_module.train_dataloader()</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="sd">    """</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="s2">"../data/benchmark_ai_detection_multimodel_2026.csv"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="w">        </span><span class="sd">"""Initializes the DataModule.</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="sd">        Args:</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd">            data_dir (str): Path to the CSV dataset file.</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">            batch_size (int, optional): Batch size for dataloaders. Defaults to 64.</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a><span class="sd">            num_workers (int, optional): Number of subprocesses for data loading. Defaults to 8.</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="sd">        """</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">=</span> <span class="n">data_dir</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">()</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>        
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="w">        </span><span class="sd">"""Initializes the dataset instance for the requested pipeline stage.</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="sd">        Args:</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a><span class="sd">            stage (str, optional): Stage identifier ('fit', 'validate', 'test', or 'predict').</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a><span class="sd">                Defaults to None.</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a><span class="sd">        """</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_ds</span> <span class="o">=</span> <span class="n">CSVDataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="p">)</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="w">        </span><span class="sd">"""Builds the training DataLoader.</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="sd">        Args:</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="sd">            shuffle (bool, optional): Whether to shuffle samples each epoch. Defaults to True.</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="sd">        Returns:</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="sd">            DataLoader: PyTorch DataLoader configured for training.</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="sd">        """</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>        <span class="k">return</span> <span class="n">DataLoader</span><span class="p">(</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_ds</span><span class="p">,</span> 
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>            <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> 
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>            <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> 
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>            <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>        <span class="p">)</span>   
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>    
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="w">        </span><span class="sd">"""Builds the prediction DataLoader with shuffling disabled.</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="sd">        Returns:</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="sd">            DataLoader: PyTorch DataLoader configured for inference.</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="sd">        """</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_dataloader</span><span class="p">(</span><span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>        
 </span></pre></div>
 
 
@@ -168,43 +252,71 @@
 
     </div>
     <a class="headerlink" href="#CSVDataset"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CSVDataset-8"><a href="#CSVDataset-8"><span class="linenos"> 8</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CSVDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
-</span><span id="CSVDataset-9"><a href="#CSVDataset-9"><span class="linenos"> 9</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csv_path</span><span class="o">=</span><span class="s2">"../data/benchmark_ai_detection_multimodel_2026.csv"</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="CSVDataset-10"><a href="#CSVDataset-10"><span class="linenos">10</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
-</span><span id="CSVDataset-11"><a href="#CSVDataset-11"><span class="linenos">11</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
-</span><span id="CSVDataset-12"><a href="#CSVDataset-12"><span class="linenos">12</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">feature_columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">'id'</span><span class="p">,</span> <span class="s1">'timestamp'</span><span class="p">,</span> <span class="s1">'is_ai_generated'</span><span class="p">,</span><span class="s1">'text_content'</span><span class="p">,</span> <span class="s1">'source_model'</span><span class="p">])</span>
-</span><span id="CSVDataset-13"><a href="#CSVDataset-13"><span class="linenos">13</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">label_column</span> <span class="o">=</span> <span class="s1">'is_ai_generated'</span>
-</span><span id="CSVDataset-14"><a href="#CSVDataset-14"><span class="linenos">14</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_columns</span><span class="p">])</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'float32'</span><span class="p">)</span>
-</span><span id="CSVDataset-15"><a href="#CSVDataset-15"><span class="linenos">15</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_column</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'int64'</span><span class="p">)</span>
-</span><span id="CSVDataset-16"><a href="#CSVDataset-16"><span class="linenos">16</span></a>        
-</span><span id="CSVDataset-17"><a href="#CSVDataset-17"><span class="linenos">17</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="CSVDataset-18"><a href="#CSVDataset-18"><span class="linenos">18</span></a>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span>
-</span><span id="CSVDataset-19"><a href="#CSVDataset-19"><span class="linenos">19</span></a>    
-</span><span id="CSVDataset-20"><a href="#CSVDataset-20"><span class="linenos">20</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
-</span><span id="CSVDataset-21"><a href="#CSVDataset-21"><span class="linenos">21</span></a>        <span class="n">X</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
-</span><span id="CSVDataset-22"><a href="#CSVDataset-22"><span class="linenos">22</span></a>        <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
-</span><span id="CSVDataset-23"><a href="#CSVDataset-23"><span class="linenos">23</span></a>        <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CSVDataset-15"><a href="#CSVDataset-15"><span class="linenos">15</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CSVDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+</span><span id="CSVDataset-16"><a href="#CSVDataset-16"><span class="linenos">16</span></a><span class="w">    </span><span class="sd">"""PyTorch Dataset for tabular AI text detection data.</span>
+</span><span id="CSVDataset-17"><a href="#CSVDataset-17"><span class="linenos">17</span></a>
+</span><span id="CSVDataset-18"><a href="#CSVDataset-18"><span class="linenos">18</span></a><span class="sd">    Extracts statistical text features (e.g. word count, perplexity,</span>
+</span><span id="CSVDataset-19"><a href="#CSVDataset-19"><span class="linenos">19</span></a><span class="sd">    readability) and binary AI-generation labels from a CSV file.</span>
+</span><span id="CSVDataset-20"><a href="#CSVDataset-20"><span class="linenos">20</span></a>
+</span><span id="CSVDataset-21"><a href="#CSVDataset-21"><span class="linenos">21</span></a><span class="sd">    Attributes:</span>
+</span><span id="CSVDataset-22"><a href="#CSVDataset-22"><span class="linenos">22</span></a><span class="sd">        df (pd.DataFrame): Raw dataframe loaded from the CSV file.</span>
+</span><span id="CSVDataset-23"><a href="#CSVDataset-23"><span class="linenos">23</span></a><span class="sd">        transform (callable, optional): Optional transform applied to samples.</span>
+</span><span id="CSVDataset-24"><a href="#CSVDataset-24"><span class="linenos">24</span></a><span class="sd">        feature_columns (pd.Index): Selected feature column names.</span>
+</span><span id="CSVDataset-25"><a href="#CSVDataset-25"><span class="linenos">25</span></a><span class="sd">        label_column (str): Name of the label column ('is_ai_generated').</span>
+</span><span id="CSVDataset-26"><a href="#CSVDataset-26"><span class="linenos">26</span></a><span class="sd">        X (np.ndarray): Preprocessed feature array (float32).</span>
+</span><span id="CSVDataset-27"><a href="#CSVDataset-27"><span class="linenos">27</span></a><span class="sd">        y (np.ndarray): Target labels array (int64).</span>
+</span><span id="CSVDataset-28"><a href="#CSVDataset-28"><span class="linenos">28</span></a><span class="sd">    """</span>
+</span><span id="CSVDataset-29"><a href="#CSVDataset-29"><span class="linenos">29</span></a>
+</span><span id="CSVDataset-30"><a href="#CSVDataset-30"><span class="linenos">30</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csv_path</span><span class="o">=</span><span class="s2">"../data/benchmark_ai_detection_multimodel_2026.csv"</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="CSVDataset-31"><a href="#CSVDataset-31"><span class="linenos">31</span></a><span class="w">        </span><span class="sd">"""Initializes the dataset from a CSV file.</span>
+</span><span id="CSVDataset-32"><a href="#CSVDataset-32"><span class="linenos">32</span></a>
+</span><span id="CSVDataset-33"><a href="#CSVDataset-33"><span class="linenos">33</span></a><span class="sd">        Args:</span>
+</span><span id="CSVDataset-34"><a href="#CSVDataset-34"><span class="linenos">34</span></a><span class="sd">            csv_path (str): Path to the CSV dataset file.</span>
+</span><span id="CSVDataset-35"><a href="#CSVDataset-35"><span class="linenos">35</span></a><span class="sd">            transform (callable, optional): Optional data transformation. Defaults to None.</span>
+</span><span id="CSVDataset-36"><a href="#CSVDataset-36"><span class="linenos">36</span></a><span class="sd">        """</span>
+</span><span id="CSVDataset-37"><a href="#CSVDataset-37"><span class="linenos">37</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
+</span><span id="CSVDataset-38"><a href="#CSVDataset-38"><span class="linenos">38</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
+</span><span id="CSVDataset-39"><a href="#CSVDataset-39"><span class="linenos">39</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">feature_columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">'id'</span><span class="p">,</span> <span class="s1">'timestamp'</span><span class="p">,</span> <span class="s1">'is_ai_generated'</span><span class="p">,</span><span class="s1">'text_content'</span><span class="p">,</span> <span class="s1">'source_model'</span><span class="p">])</span>
+</span><span id="CSVDataset-40"><a href="#CSVDataset-40"><span class="linenos">40</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">label_column</span> <span class="o">=</span> <span class="s1">'is_ai_generated'</span>
+</span><span id="CSVDataset-41"><a href="#CSVDataset-41"><span class="linenos">41</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_columns</span><span class="p">])</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'float32'</span><span class="p">)</span>
+</span><span id="CSVDataset-42"><a href="#CSVDataset-42"><span class="linenos">42</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_column</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'int64'</span><span class="p">)</span>
+</span><span id="CSVDataset-43"><a href="#CSVDataset-43"><span class="linenos">43</span></a>        
+</span><span id="CSVDataset-44"><a href="#CSVDataset-44"><span class="linenos">44</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="CSVDataset-45"><a href="#CSVDataset-45"><span class="linenos">45</span></a><span class="w">        </span><span class="sd">"""Returns the total number of samples in the dataset.</span>
+</span><span id="CSVDataset-46"><a href="#CSVDataset-46"><span class="linenos">46</span></a>
+</span><span id="CSVDataset-47"><a href="#CSVDataset-47"><span class="linenos">47</span></a><span class="sd">        Returns:</span>
+</span><span id="CSVDataset-48"><a href="#CSVDataset-48"><span class="linenos">48</span></a><span class="sd">            int: Number of samples in the dataset.</span>
+</span><span id="CSVDataset-49"><a href="#CSVDataset-49"><span class="linenos">49</span></a><span class="sd">        """</span>
+</span><span id="CSVDataset-50"><a href="#CSVDataset-50"><span class="linenos">50</span></a>        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span>
+</span><span id="CSVDataset-51"><a href="#CSVDataset-51"><span class="linenos">51</span></a>    
+</span><span id="CSVDataset-52"><a href="#CSVDataset-52"><span class="linenos">52</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+</span><span id="CSVDataset-53"><a href="#CSVDataset-53"><span class="linenos">53</span></a><span class="w">        </span><span class="sd">"""Retrieves the feature tensor and label for a sample at the given index.</span>
+</span><span id="CSVDataset-54"><a href="#CSVDataset-54"><span class="linenos">54</span></a>
+</span><span id="CSVDataset-55"><a href="#CSVDataset-55"><span class="linenos">55</span></a><span class="sd">        Args:</span>
+</span><span id="CSVDataset-56"><a href="#CSVDataset-56"><span class="linenos">56</span></a><span class="sd">            idx (int): Index of the sample to retrieve.</span>
+</span><span id="CSVDataset-57"><a href="#CSVDataset-57"><span class="linenos">57</span></a>
+</span><span id="CSVDataset-58"><a href="#CSVDataset-58"><span class="linenos">58</span></a><span class="sd">        Returns:</span>
+</span><span id="CSVDataset-59"><a href="#CSVDataset-59"><span class="linenos">59</span></a><span class="sd">            tuple[torch.Tensor, torch.Tensor]: Tuple containing the feature tensor (X)</span>
+</span><span id="CSVDataset-60"><a href="#CSVDataset-60"><span class="linenos">60</span></a><span class="sd">                and the target label tensor (y).</span>
+</span><span id="CSVDataset-61"><a href="#CSVDataset-61"><span class="linenos">61</span></a><span class="sd">        """</span>
+</span><span id="CSVDataset-62"><a href="#CSVDataset-62"><span class="linenos">62</span></a>        <span class="n">X</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+</span><span id="CSVDataset-63"><a href="#CSVDataset-63"><span class="linenos">63</span></a>        <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)</span>
+</span><span id="CSVDataset-64"><a href="#CSVDataset-64"><span class="linenos">64</span></a>        <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">y</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>An abstract class representing a <code>Dataset</code>.</p>
+            <div class="docstring"><p>PyTorch Dataset for tabular AI text detection data.</p>
 
-<p>All datasets that represent a map from keys to data samples should subclass
-it. All subclasses should overwrite <code>__getitem__()</code>, supporting fetching a
-data sample for a given key. Subclasses could also optionally overwrite
-<code>__len__()</code>, which is expected to return the size of the dataset by many
-<code>~torch.utils.data.Sampler</code> implementations and the default options
-of <code>~torch.utils.data.DataLoader</code>. Subclasses could also
-optionally implement <code>__getitems__()</code>, for speedup batched samples
-loading. This method accepts list of indices of samples of batch and returns
-list of samples.</p>
+<p>Extracts statistical text features (e.g. word count, perplexity,
+readability) and binary AI-generation labels from a CSV file.</p>
 
-<div class="alert note">
-
-<p>sampler that yields integral indices.  To make it work with a map-style
-dataset with non-integral indices/keys, a custom sampler must be provided.</p>
-
-</div>
+<p>Attributes:
+    df (pd.DataFrame): Raw dataframe loaded from the CSV file.
+    transform (callable, optional): Optional transform applied to samples.
+    feature_columns (pd.Index): Selected feature column names.
+    label_column (str): Name of the label column ('is_ai_generated').
+    X (np.ndarray): Preprocessed feature array (float32).
+    y (np.ndarray): Target labels array (int64).</p>
 </div>
 
 
@@ -218,17 +330,29 @@ dataset with non-integral indices/keys, a custom sampler must be provided.</p>
 
     </div>
     <a class="headerlink" href="#CSVDataset.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CSVDataset.__init__-9"><a href="#CSVDataset.__init__-9"><span class="linenos"> 9</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csv_path</span><span class="o">=</span><span class="s2">"../data/benchmark_ai_detection_multimodel_2026.csv"</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="CSVDataset.__init__-10"><a href="#CSVDataset.__init__-10"><span class="linenos">10</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
-</span><span id="CSVDataset.__init__-11"><a href="#CSVDataset.__init__-11"><span class="linenos">11</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
-</span><span id="CSVDataset.__init__-12"><a href="#CSVDataset.__init__-12"><span class="linenos">12</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">feature_columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">'id'</span><span class="p">,</span> <span class="s1">'timestamp'</span><span class="p">,</span> <span class="s1">'is_ai_generated'</span><span class="p">,</span><span class="s1">'text_content'</span><span class="p">,</span> <span class="s1">'source_model'</span><span class="p">])</span>
-</span><span id="CSVDataset.__init__-13"><a href="#CSVDataset.__init__-13"><span class="linenos">13</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">label_column</span> <span class="o">=</span> <span class="s1">'is_ai_generated'</span>
-</span><span id="CSVDataset.__init__-14"><a href="#CSVDataset.__init__-14"><span class="linenos">14</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_columns</span><span class="p">])</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'float32'</span><span class="p">)</span>
-</span><span id="CSVDataset.__init__-15"><a href="#CSVDataset.__init__-15"><span class="linenos">15</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_column</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'int64'</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CSVDataset.__init__-30"><a href="#CSVDataset.__init__-30"><span class="linenos">30</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csv_path</span><span class="o">=</span><span class="s2">"../data/benchmark_ai_detection_multimodel_2026.csv"</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="CSVDataset.__init__-31"><a href="#CSVDataset.__init__-31"><span class="linenos">31</span></a><span class="w">        </span><span class="sd">"""Initializes the dataset from a CSV file.</span>
+</span><span id="CSVDataset.__init__-32"><a href="#CSVDataset.__init__-32"><span class="linenos">32</span></a>
+</span><span id="CSVDataset.__init__-33"><a href="#CSVDataset.__init__-33"><span class="linenos">33</span></a><span class="sd">        Args:</span>
+</span><span id="CSVDataset.__init__-34"><a href="#CSVDataset.__init__-34"><span class="linenos">34</span></a><span class="sd">            csv_path (str): Path to the CSV dataset file.</span>
+</span><span id="CSVDataset.__init__-35"><a href="#CSVDataset.__init__-35"><span class="linenos">35</span></a><span class="sd">            transform (callable, optional): Optional data transformation. Defaults to None.</span>
+</span><span id="CSVDataset.__init__-36"><a href="#CSVDataset.__init__-36"><span class="linenos">36</span></a><span class="sd">        """</span>
+</span><span id="CSVDataset.__init__-37"><a href="#CSVDataset.__init__-37"><span class="linenos">37</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
+</span><span id="CSVDataset.__init__-38"><a href="#CSVDataset.__init__-38"><span class="linenos">38</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
+</span><span id="CSVDataset.__init__-39"><a href="#CSVDataset.__init__-39"><span class="linenos">39</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">feature_columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">'id'</span><span class="p">,</span> <span class="s1">'timestamp'</span><span class="p">,</span> <span class="s1">'is_ai_generated'</span><span class="p">,</span><span class="s1">'text_content'</span><span class="p">,</span> <span class="s1">'source_model'</span><span class="p">])</span>
+</span><span id="CSVDataset.__init__-40"><a href="#CSVDataset.__init__-40"><span class="linenos">40</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">label_column</span> <span class="o">=</span> <span class="s1">'is_ai_generated'</span>
+</span><span id="CSVDataset.__init__-41"><a href="#CSVDataset.__init__-41"><span class="linenos">41</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_columns</span><span class="p">])</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'float32'</span><span class="p">)</span>
+</span><span id="CSVDataset.__init__-42"><a href="#CSVDataset.__init__-42"><span class="linenos">42</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_column</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'int64'</span><span class="p">)</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Initializes the dataset from a CSV file.</p>
+
+<p>Args:
+    csv_path (str): Path to the CSV dataset file.
+    transform (callable, optional): Optional data transformation. Defaults to None.</p>
+</div>
+
 
                             </div>
                             <div id="CSVDataset.df" class="classattr">
@@ -309,71 +433,83 @@ dataset with non-integral indices/keys, a custom sampler must be provided.</p>
 
     </div>
     <a class="headerlink" href="#CSVDataModule"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CSVDataModule-25"><a href="#CSVDataModule-25"><span class="linenos">25</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CSVDataModule</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningDataModule</span><span class="p">):</span>
-</span><span id="CSVDataModule-26"><a href="#CSVDataModule-26"><span class="linenos">26</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="s2">"../data/benchmark_ai_detection_multimodel_2026.csv"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
-</span><span id="CSVDataModule-27"><a href="#CSVDataModule-27"><span class="linenos">27</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span id="CSVDataModule-28"><a href="#CSVDataModule-28"><span class="linenos">28</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">=</span> <span class="n">data_dir</span>
-</span><span id="CSVDataModule-29"><a href="#CSVDataModule-29"><span class="linenos">29</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
-</span><span id="CSVDataModule-30"><a href="#CSVDataModule-30"><span class="linenos">30</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
-</span><span id="CSVDataModule-31"><a href="#CSVDataModule-31"><span class="linenos">31</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">()</span>
-</span><span id="CSVDataModule-32"><a href="#CSVDataModule-32"><span class="linenos">32</span></a>        
-</span><span id="CSVDataModule-33"><a href="#CSVDataModule-33"><span class="linenos">33</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="CSVDataModule-34"><a href="#CSVDataModule-34"><span class="linenos">34</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_ds</span> <span class="o">=</span> <span class="n">CSVDataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="p">)</span>
-</span><span id="CSVDataModule-35"><a href="#CSVDataModule-35"><span class="linenos">35</span></a>    
-</span><span id="CSVDataModule-36"><a href="#CSVDataModule-36"><span class="linenos">36</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="CSVDataModule-37"><a href="#CSVDataModule-37"><span class="linenos">37</span></a>        <span class="k">return</span> <span class="n">DataLoader</span><span class="p">(</span>
-</span><span id="CSVDataModule-38"><a href="#CSVDataModule-38"><span class="linenos">38</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_ds</span><span class="p">,</span> 
-</span><span id="CSVDataModule-39"><a href="#CSVDataModule-39"><span class="linenos">39</span></a>            <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> 
-</span><span id="CSVDataModule-40"><a href="#CSVDataModule-40"><span class="linenos">40</span></a>            <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> 
-</span><span id="CSVDataModule-41"><a href="#CSVDataModule-41"><span class="linenos">41</span></a>            <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span>
-</span><span id="CSVDataModule-42"><a href="#CSVDataModule-42"><span class="linenos">42</span></a>        <span class="p">)</span>   
-</span><span id="CSVDataModule-43"><a href="#CSVDataModule-43"><span class="linenos">43</span></a>    
-</span><span id="CSVDataModule-44"><a href="#CSVDataModule-44"><span class="linenos">44</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="CSVDataModule-45"><a href="#CSVDataModule-45"><span class="linenos">45</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_dataloader</span><span class="p">(</span><span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CSVDataModule-66"><a href="#CSVDataModule-66"><span class="linenos"> 66</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CSVDataModule</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningDataModule</span><span class="p">):</span>
+</span><span id="CSVDataModule-67"><a href="#CSVDataModule-67"><span class="linenos"> 67</span></a><span class="w">    </span><span class="sd">"""PyTorch Lightning DataModule for managing training and prediction DataLoaders.</span>
+</span><span id="CSVDataModule-68"><a href="#CSVDataModule-68"><span class="linenos"> 68</span></a>
+</span><span id="CSVDataModule-69"><a href="#CSVDataModule-69"><span class="linenos"> 69</span></a><span class="sd">    Encapsulates dataset preparation and DataLoader instantiation for model training</span>
+</span><span id="CSVDataModule-70"><a href="#CSVDataModule-70"><span class="linenos"> 70</span></a><span class="sd">    and inference pipelines.</span>
+</span><span id="CSVDataModule-71"><a href="#CSVDataModule-71"><span class="linenos"> 71</span></a>
+</span><span id="CSVDataModule-72"><a href="#CSVDataModule-72"><span class="linenos"> 72</span></a><span class="sd">    Example:</span>
+</span><span id="CSVDataModule-73"><a href="#CSVDataModule-73"><span class="linenos"> 73</span></a><span class="sd">        &gt;&gt;&gt; data_module = CSVDataModule(data_dir="data/dataset.csv", batch_size=32)</span>
+</span><span id="CSVDataModule-74"><a href="#CSVDataModule-74"><span class="linenos"> 74</span></a><span class="sd">        &gt;&gt;&gt; data_module.setup()</span>
+</span><span id="CSVDataModule-75"><a href="#CSVDataModule-75"><span class="linenos"> 75</span></a><span class="sd">        &gt;&gt;&gt; loader = data_module.train_dataloader()</span>
+</span><span id="CSVDataModule-76"><a href="#CSVDataModule-76"><span class="linenos"> 76</span></a><span class="sd">    """</span>
+</span><span id="CSVDataModule-77"><a href="#CSVDataModule-77"><span class="linenos"> 77</span></a>
+</span><span id="CSVDataModule-78"><a href="#CSVDataModule-78"><span class="linenos"> 78</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="s2">"../data/benchmark_ai_detection_multimodel_2026.csv"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+</span><span id="CSVDataModule-79"><a href="#CSVDataModule-79"><span class="linenos"> 79</span></a><span class="w">        </span><span class="sd">"""Initializes the DataModule.</span>
+</span><span id="CSVDataModule-80"><a href="#CSVDataModule-80"><span class="linenos"> 80</span></a>
+</span><span id="CSVDataModule-81"><a href="#CSVDataModule-81"><span class="linenos"> 81</span></a><span class="sd">        Args:</span>
+</span><span id="CSVDataModule-82"><a href="#CSVDataModule-82"><span class="linenos"> 82</span></a><span class="sd">            data_dir (str): Path to the CSV dataset file.</span>
+</span><span id="CSVDataModule-83"><a href="#CSVDataModule-83"><span class="linenos"> 83</span></a><span class="sd">            batch_size (int, optional): Batch size for dataloaders. Defaults to 64.</span>
+</span><span id="CSVDataModule-84"><a href="#CSVDataModule-84"><span class="linenos"> 84</span></a><span class="sd">            num_workers (int, optional): Number of subprocesses for data loading. Defaults to 8.</span>
+</span><span id="CSVDataModule-85"><a href="#CSVDataModule-85"><span class="linenos"> 85</span></a><span class="sd">        """</span>
+</span><span id="CSVDataModule-86"><a href="#CSVDataModule-86"><span class="linenos"> 86</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span id="CSVDataModule-87"><a href="#CSVDataModule-87"><span class="linenos"> 87</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">=</span> <span class="n">data_dir</span>
+</span><span id="CSVDataModule-88"><a href="#CSVDataModule-88"><span class="linenos"> 88</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+</span><span id="CSVDataModule-89"><a href="#CSVDataModule-89"><span class="linenos"> 89</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
+</span><span id="CSVDataModule-90"><a href="#CSVDataModule-90"><span class="linenos"> 90</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">()</span>
+</span><span id="CSVDataModule-91"><a href="#CSVDataModule-91"><span class="linenos"> 91</span></a>        
+</span><span id="CSVDataModule-92"><a href="#CSVDataModule-92"><span class="linenos"> 92</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="CSVDataModule-93"><a href="#CSVDataModule-93"><span class="linenos"> 93</span></a><span class="w">        </span><span class="sd">"""Initializes the dataset instance for the requested pipeline stage.</span>
+</span><span id="CSVDataModule-94"><a href="#CSVDataModule-94"><span class="linenos"> 94</span></a>
+</span><span id="CSVDataModule-95"><a href="#CSVDataModule-95"><span class="linenos"> 95</span></a><span class="sd">        Args:</span>
+</span><span id="CSVDataModule-96"><a href="#CSVDataModule-96"><span class="linenos"> 96</span></a><span class="sd">            stage (str, optional): Stage identifier ('fit', 'validate', 'test', or 'predict').</span>
+</span><span id="CSVDataModule-97"><a href="#CSVDataModule-97"><span class="linenos"> 97</span></a><span class="sd">                Defaults to None.</span>
+</span><span id="CSVDataModule-98"><a href="#CSVDataModule-98"><span class="linenos"> 98</span></a><span class="sd">        """</span>
+</span><span id="CSVDataModule-99"><a href="#CSVDataModule-99"><span class="linenos"> 99</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_ds</span> <span class="o">=</span> <span class="n">CSVDataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="p">)</span>
+</span><span id="CSVDataModule-100"><a href="#CSVDataModule-100"><span class="linenos">100</span></a>    
+</span><span id="CSVDataModule-101"><a href="#CSVDataModule-101"><span class="linenos">101</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="CSVDataModule-102"><a href="#CSVDataModule-102"><span class="linenos">102</span></a><span class="w">        </span><span class="sd">"""Builds the training DataLoader.</span>
+</span><span id="CSVDataModule-103"><a href="#CSVDataModule-103"><span class="linenos">103</span></a>
+</span><span id="CSVDataModule-104"><a href="#CSVDataModule-104"><span class="linenos">104</span></a><span class="sd">        Args:</span>
+</span><span id="CSVDataModule-105"><a href="#CSVDataModule-105"><span class="linenos">105</span></a><span class="sd">            shuffle (bool, optional): Whether to shuffle samples each epoch. Defaults to True.</span>
+</span><span id="CSVDataModule-106"><a href="#CSVDataModule-106"><span class="linenos">106</span></a>
+</span><span id="CSVDataModule-107"><a href="#CSVDataModule-107"><span class="linenos">107</span></a><span class="sd">        Returns:</span>
+</span><span id="CSVDataModule-108"><a href="#CSVDataModule-108"><span class="linenos">108</span></a><span class="sd">            DataLoader: PyTorch DataLoader configured for training.</span>
+</span><span id="CSVDataModule-109"><a href="#CSVDataModule-109"><span class="linenos">109</span></a><span class="sd">        """</span>
+</span><span id="CSVDataModule-110"><a href="#CSVDataModule-110"><span class="linenos">110</span></a>        <span class="k">return</span> <span class="n">DataLoader</span><span class="p">(</span>
+</span><span id="CSVDataModule-111"><a href="#CSVDataModule-111"><span class="linenos">111</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_ds</span><span class="p">,</span> 
+</span><span id="CSVDataModule-112"><a href="#CSVDataModule-112"><span class="linenos">112</span></a>            <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> 
+</span><span id="CSVDataModule-113"><a href="#CSVDataModule-113"><span class="linenos">113</span></a>            <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> 
+</span><span id="CSVDataModule-114"><a href="#CSVDataModule-114"><span class="linenos">114</span></a>            <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span>
+</span><span id="CSVDataModule-115"><a href="#CSVDataModule-115"><span class="linenos">115</span></a>        <span class="p">)</span>   
+</span><span id="CSVDataModule-116"><a href="#CSVDataModule-116"><span class="linenos">116</span></a>    
+</span><span id="CSVDataModule-117"><a href="#CSVDataModule-117"><span class="linenos">117</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="CSVDataModule-118"><a href="#CSVDataModule-118"><span class="linenos">118</span></a><span class="w">        </span><span class="sd">"""Builds the prediction DataLoader with shuffling disabled.</span>
+</span><span id="CSVDataModule-119"><a href="#CSVDataModule-119"><span class="linenos">119</span></a>
+</span><span id="CSVDataModule-120"><a href="#CSVDataModule-120"><span class="linenos">120</span></a><span class="sd">        Returns:</span>
+</span><span id="CSVDataModule-121"><a href="#CSVDataModule-121"><span class="linenos">121</span></a><span class="sd">            DataLoader: PyTorch DataLoader configured for inference.</span>
+</span><span id="CSVDataModule-122"><a href="#CSVDataModule-122"><span class="linenos">122</span></a><span class="sd">        """</span>
+</span><span id="CSVDataModule-123"><a href="#CSVDataModule-123"><span class="linenos">123</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_dataloader</span><span class="p">(</span><span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>A DataModule standardizes the training, val, test splits, data preparation and transforms. The main advantage is
-consistent data splits, data preparation and transforms across models.</p>
+            <div class="docstring"><p>PyTorch Lightning DataModule for managing training and prediction DataLoaders.</p>
 
-<p>Example::</p>
+<p>Encapsulates dataset preparation and DataLoader instantiation for model training
+and inference pipelines.</p>
 
-<pre><code>import lightning.pytorch as L
-import torch.utils.data as data
-from pytorch_lightning.demos.boring_classes import RandomDataset
+<p>Example:</p>
 
-class MyDataModule(L.LightningDataModule):
-    def prepare_data(self):
-        # download, IO, etc. Useful with shared filesystems
-        # only called on 1 GPU/TPU in distributed
-        ...
-
-    def setup(self, stage):
-        # make assignments here (val/train/test split)
-        # called on every process in DDP
-        dataset = RandomDataset(1, 100)
-        self.train, self.val, self.test = data.random_split(
-            dataset, [80, 10, 10], generator=torch.Generator().manual_seed(42)
-        )
-
-    def train_dataloader(self):
-        return data.DataLoader(self.train)
-
-    def val_dataloader(self):
-        return data.DataLoader(self.val)
-
-    def test_dataloader(self):
-        return data.DataLoader(self.test)
-
-    def on_exception(self, exception):
-        # clean up state after the trainer faced an exception
-        ...
-
-    def teardown(self):
-        # clean up state after the trainer stops, delete files...
-        # called on every process in DDP
-        ...
-</code></pre>
+<blockquote>
+  <blockquote>
+    <blockquote>
+      <p>data_module = CSVDataModule(data_dir="data/dataset.csv", batch_size=32)
+      data_module.setup()
+      loader = data_module.train_dataloader()</p>
+    </blockquote>
+  </blockquote>
+</blockquote>
 </div>
 
 
@@ -387,22 +523,28 @@ class MyDataModule(L.LightningDataModule):
 
     </div>
     <a class="headerlink" href="#CSVDataModule.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CSVDataModule.__init__-26"><a href="#CSVDataModule.__init__-26"><span class="linenos">26</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="s2">"../data/benchmark_ai_detection_multimodel_2026.csv"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
-</span><span id="CSVDataModule.__init__-27"><a href="#CSVDataModule.__init__-27"><span class="linenos">27</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span id="CSVDataModule.__init__-28"><a href="#CSVDataModule.__init__-28"><span class="linenos">28</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">=</span> <span class="n">data_dir</span>
-</span><span id="CSVDataModule.__init__-29"><a href="#CSVDataModule.__init__-29"><span class="linenos">29</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
-</span><span id="CSVDataModule.__init__-30"><a href="#CSVDataModule.__init__-30"><span class="linenos">30</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
-</span><span id="CSVDataModule.__init__-31"><a href="#CSVDataModule.__init__-31"><span class="linenos">31</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CSVDataModule.__init__-78"><a href="#CSVDataModule.__init__-78"><span class="linenos">78</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="s2">"../data/benchmark_ai_detection_multimodel_2026.csv"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+</span><span id="CSVDataModule.__init__-79"><a href="#CSVDataModule.__init__-79"><span class="linenos">79</span></a><span class="w">        </span><span class="sd">"""Initializes the DataModule.</span>
+</span><span id="CSVDataModule.__init__-80"><a href="#CSVDataModule.__init__-80"><span class="linenos">80</span></a>
+</span><span id="CSVDataModule.__init__-81"><a href="#CSVDataModule.__init__-81"><span class="linenos">81</span></a><span class="sd">        Args:</span>
+</span><span id="CSVDataModule.__init__-82"><a href="#CSVDataModule.__init__-82"><span class="linenos">82</span></a><span class="sd">            data_dir (str): Path to the CSV dataset file.</span>
+</span><span id="CSVDataModule.__init__-83"><a href="#CSVDataModule.__init__-83"><span class="linenos">83</span></a><span class="sd">            batch_size (int, optional): Batch size for dataloaders. Defaults to 64.</span>
+</span><span id="CSVDataModule.__init__-84"><a href="#CSVDataModule.__init__-84"><span class="linenos">84</span></a><span class="sd">            num_workers (int, optional): Number of subprocesses for data loading. Defaults to 8.</span>
+</span><span id="CSVDataModule.__init__-85"><a href="#CSVDataModule.__init__-85"><span class="linenos">85</span></a><span class="sd">        """</span>
+</span><span id="CSVDataModule.__init__-86"><a href="#CSVDataModule.__init__-86"><span class="linenos">86</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span id="CSVDataModule.__init__-87"><a href="#CSVDataModule.__init__-87"><span class="linenos">87</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span> <span class="o">=</span> <span class="n">data_dir</span>
+</span><span id="CSVDataModule.__init__-88"><a href="#CSVDataModule.__init__-88"><span class="linenos">88</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
+</span><span id="CSVDataModule.__init__-89"><a href="#CSVDataModule.__init__-89"><span class="linenos">89</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
+</span><span id="CSVDataModule.__init__-90"><a href="#CSVDataModule.__init__-90"><span class="linenos">90</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">()</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Attributes:
-    prepare_data_per_node:
-        If True, each LOCAL_RANK=0 will call prepare data.
-        Otherwise only NODE_RANK=0, LOCAL_RANK=0 will prepare data.
-    allow_zero_length_dataloader_with_multiple_devices:
-        If True, dataloader with zero length within local rank is allowed.
-        Default value is False.</p>
+            <div class="docstring"><p>Initializes the DataModule.</p>
+
+<p>Args:
+    data_dir (str): Path to the CSV dataset file.
+    batch_size (int, optional): Batch size for dataloaders. Defaults to 64.
+    num_workers (int, optional): Number of subprocesses for data loading. Defaults to 8.</p>
 </div>
 
 
@@ -462,35 +604,22 @@ class MyDataModule(L.LightningDataModule):
 
     </div>
     <a class="headerlink" href="#CSVDataModule.setup"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CSVDataModule.setup-33"><a href="#CSVDataModule.setup-33"><span class="linenos">33</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-</span><span id="CSVDataModule.setup-34"><a href="#CSVDataModule.setup-34"><span class="linenos">34</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_ds</span> <span class="o">=</span> <span class="n">CSVDataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CSVDataModule.setup-92"><a href="#CSVDataModule.setup-92"><span class="linenos">92</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="CSVDataModule.setup-93"><a href="#CSVDataModule.setup-93"><span class="linenos">93</span></a><span class="w">        </span><span class="sd">"""Initializes the dataset instance for the requested pipeline stage.</span>
+</span><span id="CSVDataModule.setup-94"><a href="#CSVDataModule.setup-94"><span class="linenos">94</span></a>
+</span><span id="CSVDataModule.setup-95"><a href="#CSVDataModule.setup-95"><span class="linenos">95</span></a><span class="sd">        Args:</span>
+</span><span id="CSVDataModule.setup-96"><a href="#CSVDataModule.setup-96"><span class="linenos">96</span></a><span class="sd">            stage (str, optional): Stage identifier ('fit', 'validate', 'test', or 'predict').</span>
+</span><span id="CSVDataModule.setup-97"><a href="#CSVDataModule.setup-97"><span class="linenos">97</span></a><span class="sd">                Defaults to None.</span>
+</span><span id="CSVDataModule.setup-98"><a href="#CSVDataModule.setup-98"><span class="linenos">98</span></a><span class="sd">        """</span>
+</span><span id="CSVDataModule.setup-99"><a href="#CSVDataModule.setup-99"><span class="linenos">99</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_ds</span> <span class="o">=</span> <span class="n">CSVDataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_dir</span><span class="p">)</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Called at the beginning of fit (train + validate), validate, test, or predict. This is a good hook when you
-need to build models dynamically or adjust something about them. This hook is called on every process when
-using DDP.</p>
+            <div class="docstring"><p>Initializes the dataset instance for the requested pipeline stage.</p>
 
 <p>Args:
-    stage: either <code>'fit'</code>, <code>'validate'</code>, <code>'test'</code>, or <code>'predict'</code></p>
-
-<p>Example::</p>
-
-<pre><code>class LitModel(...):
-    def __init__(self):
-        self.l1 = None
-
-    def prepare_data(self):
-        download_data()
-        tokenize()
-
-        # don't do this
-        self.something = else
-
-    def setup(self, stage):
-        data = load_data(...)
-        self.l1 = nn.Linear(28, data.num_classes)
-</code></pre>
+    stage (str, optional): Stage identifier ('fit', 'validate', 'test', or 'predict').
+        Defaults to None.</p>
 </div>
 
 
@@ -506,47 +635,31 @@ using DDP.</p>
 
     </div>
     <a class="headerlink" href="#CSVDataModule.train_dataloader"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CSVDataModule.train_dataloader-36"><a href="#CSVDataModule.train_dataloader-36"><span class="linenos">36</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="CSVDataModule.train_dataloader-37"><a href="#CSVDataModule.train_dataloader-37"><span class="linenos">37</span></a>        <span class="k">return</span> <span class="n">DataLoader</span><span class="p">(</span>
-</span><span id="CSVDataModule.train_dataloader-38"><a href="#CSVDataModule.train_dataloader-38"><span class="linenos">38</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_ds</span><span class="p">,</span> 
-</span><span id="CSVDataModule.train_dataloader-39"><a href="#CSVDataModule.train_dataloader-39"><span class="linenos">39</span></a>            <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> 
-</span><span id="CSVDataModule.train_dataloader-40"><a href="#CSVDataModule.train_dataloader-40"><span class="linenos">40</span></a>            <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> 
-</span><span id="CSVDataModule.train_dataloader-41"><a href="#CSVDataModule.train_dataloader-41"><span class="linenos">41</span></a>            <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span>
-</span><span id="CSVDataModule.train_dataloader-42"><a href="#CSVDataModule.train_dataloader-42"><span class="linenos">42</span></a>        <span class="p">)</span>   
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CSVDataModule.train_dataloader-101"><a href="#CSVDataModule.train_dataloader-101"><span class="linenos">101</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="CSVDataModule.train_dataloader-102"><a href="#CSVDataModule.train_dataloader-102"><span class="linenos">102</span></a><span class="w">        </span><span class="sd">"""Builds the training DataLoader.</span>
+</span><span id="CSVDataModule.train_dataloader-103"><a href="#CSVDataModule.train_dataloader-103"><span class="linenos">103</span></a>
+</span><span id="CSVDataModule.train_dataloader-104"><a href="#CSVDataModule.train_dataloader-104"><span class="linenos">104</span></a><span class="sd">        Args:</span>
+</span><span id="CSVDataModule.train_dataloader-105"><a href="#CSVDataModule.train_dataloader-105"><span class="linenos">105</span></a><span class="sd">            shuffle (bool, optional): Whether to shuffle samples each epoch. Defaults to True.</span>
+</span><span id="CSVDataModule.train_dataloader-106"><a href="#CSVDataModule.train_dataloader-106"><span class="linenos">106</span></a>
+</span><span id="CSVDataModule.train_dataloader-107"><a href="#CSVDataModule.train_dataloader-107"><span class="linenos">107</span></a><span class="sd">        Returns:</span>
+</span><span id="CSVDataModule.train_dataloader-108"><a href="#CSVDataModule.train_dataloader-108"><span class="linenos">108</span></a><span class="sd">            DataLoader: PyTorch DataLoader configured for training.</span>
+</span><span id="CSVDataModule.train_dataloader-109"><a href="#CSVDataModule.train_dataloader-109"><span class="linenos">109</span></a><span class="sd">        """</span>
+</span><span id="CSVDataModule.train_dataloader-110"><a href="#CSVDataModule.train_dataloader-110"><span class="linenos">110</span></a>        <span class="k">return</span> <span class="n">DataLoader</span><span class="p">(</span>
+</span><span id="CSVDataModule.train_dataloader-111"><a href="#CSVDataModule.train_dataloader-111"><span class="linenos">111</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_ds</span><span class="p">,</span> 
+</span><span id="CSVDataModule.train_dataloader-112"><a href="#CSVDataModule.train_dataloader-112"><span class="linenos">112</span></a>            <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> 
+</span><span id="CSVDataModule.train_dataloader-113"><a href="#CSVDataModule.train_dataloader-113"><span class="linenos">113</span></a>            <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> 
+</span><span id="CSVDataModule.train_dataloader-114"><a href="#CSVDataModule.train_dataloader-114"><span class="linenos">114</span></a>            <span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span>
+</span><span id="CSVDataModule.train_dataloader-115"><a href="#CSVDataModule.train_dataloader-115"><span class="linenos">115</span></a>        <span class="p">)</span>   
 </span></pre></div>
 
 
-            <div class="docstring"><p>An iterable or collection of iterables specifying training samples.</p>
+            <div class="docstring"><p>Builds the training DataLoader.</p>
 
-<p>For more information about multiple dataloaders, see this :ref:<code>section &lt;multiple-dataloaders&gt;</code>.</p>
+<p>Args:
+    shuffle (bool, optional): Whether to shuffle samples each epoch. Defaults to True.</p>
 
-<p>The dataloader you return will not be reloaded unless you set
-:paramref:<code>~pytorch_lightning.trainer.trainer.Trainer.reload_dataloaders_every_n_epochs</code> to
-a positive integer.</p>
-
-<p>For data processing use the following pattern:</p>
-
-<pre><code>- download in `prepare_data()`
-- process and split in `setup()`
-</code></pre>
-
-<p>However, the above are only necessary for distributed processing.</p>
-
-<div class="alert warning">
-
-<h6 id="do-not-assign-state-in-prepare_data">do not assign state in prepare_data</h6>
-
-</div>
-
-<ul>
-<li><code>~pytorch_lightning.trainer.trainer.Trainer.fit()</code></li>
-<li><code><a href="#CSVDataModule.prepare_data">prepare_data()</a></code></li>
-<li><code><a href="#CSVDataModule.setup">setup()</a></code></li>
-</ul>
-
-<p>Note:
-    Lightning tries to add the correct sampler for distributed and arbitrary hardware.
-    There is no need to set it yourself.</p>
+<p>Returns:
+    DataLoader: PyTorch DataLoader configured for training.</p>
 </div>
 
 
@@ -562,29 +675,20 @@ a positive integer.</p>
 
     </div>
     <a class="headerlink" href="#CSVDataModule.predict_dataloader"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CSVDataModule.predict_dataloader-44"><a href="#CSVDataModule.predict_dataloader-44"><span class="linenos">44</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="CSVDataModule.predict_dataloader-45"><a href="#CSVDataModule.predict_dataloader-45"><span class="linenos">45</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_dataloader</span><span class="p">(</span><span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CSVDataModule.predict_dataloader-117"><a href="#CSVDataModule.predict_dataloader-117"><span class="linenos">117</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="CSVDataModule.predict_dataloader-118"><a href="#CSVDataModule.predict_dataloader-118"><span class="linenos">118</span></a><span class="w">        </span><span class="sd">"""Builds the prediction DataLoader with shuffling disabled.</span>
+</span><span id="CSVDataModule.predict_dataloader-119"><a href="#CSVDataModule.predict_dataloader-119"><span class="linenos">119</span></a>
+</span><span id="CSVDataModule.predict_dataloader-120"><a href="#CSVDataModule.predict_dataloader-120"><span class="linenos">120</span></a><span class="sd">        Returns:</span>
+</span><span id="CSVDataModule.predict_dataloader-121"><a href="#CSVDataModule.predict_dataloader-121"><span class="linenos">121</span></a><span class="sd">            DataLoader: PyTorch DataLoader configured for inference.</span>
+</span><span id="CSVDataModule.predict_dataloader-122"><a href="#CSVDataModule.predict_dataloader-122"><span class="linenos">122</span></a><span class="sd">        """</span>
+</span><span id="CSVDataModule.predict_dataloader-123"><a href="#CSVDataModule.predict_dataloader-123"><span class="linenos">123</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_dataloader</span><span class="p">(</span><span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>An iterable or collection of iterables specifying prediction samples.</p>
+            <div class="docstring"><p>Builds the prediction DataLoader with shuffling disabled.</p>
 
-<p>For more information about multiple dataloaders, see this :ref:<code>section &lt;multiple-dataloaders&gt;</code>.</p>
-
-<p>It's recommended that all data downloads and preparation happen in <code><a href="#CSVDataModule.prepare_data">prepare_data()</a></code>.</p>
-
-<ul>
-<li><code>~pytorch_lightning.trainer.trainer.Trainer.predict()</code></li>
-<li><code><a href="#CSVDataModule.prepare_data">prepare_data()</a></code></li>
-<li><code><a href="#CSVDataModule.setup">setup()</a></code></li>
-</ul>
-
-<p>Note:
-    Lightning tries to add the correct sampler for distributed and arbitrary hardware
-    There is no need to set it yourself.</p>
-
-<p>Return:
-    A <code>torch.utils.data.DataLoader</code> or a sequence of them specifying prediction samples.</p>
+<p>Returns:
+    DataLoader: PyTorch DataLoader configured for inference.</p>
 </div>
 
 

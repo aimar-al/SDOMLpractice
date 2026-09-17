@@ -88,89 +88,168 @@
                     <h1 class="modulename">
 <a href="./../../src.html">src</a><wbr>.<a href="./../modeling.html">modeling</a><wbr>.train    </h1>
 
-                
+                        <div class="docstring"><p>Neural network model definition and training loop for AI text detection.</p>
+
+<p>This module provides the <code><a href="#Net">Net</a></code> PyTorch Lightning module representing a multi-layer
+perceptron classifier, as well as the <code><a href="#train">train</a></code> routine with checkpointing and logging.</p>
+</div>
+
                         <input id="mod-train-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-train-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.optim</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">optim</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytorch_lightning</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">lightning.pytorch.loggers</span><span class="w"> </span><span class="kn">import</span> <span class="n">CSVLogger</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">lightning.pytorch.callbacks</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelCheckpoint</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Net</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">l1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_losses</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_accs</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">l1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>        <span class="n">xb</span><span class="p">,</span> <span class="n">yb</span> <span class="o">=</span> <span class="n">batch</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">xb</span><span class="p">)</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">yb</span><span class="p">)</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>        <span class="n">preds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>        <span class="n">acc</span> <span class="o">=</span> <span class="p">(</span><span class="n">preds</span> <span class="o">==</span> <span class="n">yb</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_loss'</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_acc'</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>            <span class="s1">'loss'</span><span class="p">:</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>            <span class="s1">'acc'</span><span class="p">:</span> <span class="n">acc</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>        <span class="p">})</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>        <span class="k">return</span> <span class="n">loss</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">on_train_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">:</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>            <span class="n">avg_loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s1">'loss'</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">)</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>            <span class="n">avg_acc</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s1">'acc'</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">)</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_loss</span><span class="p">)</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_accs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_acc</span><span class="p">)</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'epoch_train_loss'</span><span class="p">,</span> <span class="n">avg_loss</span><span class="p">)</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'epoch_train_acc'</span><span class="p">,</span> <span class="n">avg_acc</span><span class="p">)</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>    
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>        <span class="k">return</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>    
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>        <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>        <span class="n">preds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>        <span class="k">return</span> <span class="p">{</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>            <span class="s1">'predictions'</span><span class="p">:</span> <span class="n">preds</span><span class="p">,</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>            <span class="s1">'probabilities'</span><span class="p">:</span> <span class="n">probs</span><span class="p">,</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>            <span class="s1">'labels'</span><span class="p">:</span> <span class="n">y</span><span class="p">,</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>            <span class="s1">'features'</span><span class="p">:</span> <span class="n">x</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>        <span class="p">}</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a><span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">data_module</span><span class="p">,</span><span class="n">model_path</span><span class="p">,</span><span class="n">logger_path</span><span class="p">):</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>    <span class="n">net</span> <span class="o">=</span> <span class="n">Net</span><span class="p">()</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>    <span class="n">logger</span> <span class="o">=</span> <span class="n">CSVLogger</span><span class="p">(</span><span class="n">save_dir</span><span class="o">=</span><span class="n">logger_path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"train_log"</span><span class="p">)</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>    <span class="n">checkpoint_callback</span> <span class="o">=</span> <span class="n">ModelCheckpoint</span><span class="p">(</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a>        <span class="n">dirpath</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a>        <span class="n">filename</span><span class="o">=</span><span class="s1">'best-</span><span class="si">{epoch:02d}</span><span class="s1">-</span><span class="si">{train_loss:.2f}</span><span class="s1">'</span><span class="p">,</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a>        <span class="n">monitor</span><span class="o">=</span><span class="s1">'train_loss'</span><span class="p">,</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a>        <span class="n">mode</span><span class="o">=</span><span class="s1">'min'</span><span class="p">,</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a>        <span class="n">save_top_k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a>        <span class="n">save_last</span><span class="o">=</span><span class="kc">True</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>    <span class="p">)</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a>    <span class="n">trainer</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">Trainer</span><span class="p">(</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a>        <span class="n">max_epochs</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> 
-</span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a>        <span class="n">callbacks</span><span class="o">=</span><span class="p">[</span><span class="n">checkpoint_callback</span><span class="p">],</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a>        <span class="n">default_root_dir</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span> 
-</span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a>        <span class="n">accelerator</span><span class="o">=</span><span class="s2">"cpu"</span><span class="p">,</span> <span class="n">devices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
-</span><span id="L-74"><a href="#L-74"><span class="linenos">74</span></a>        <span class="n">enable_progress_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a>        <span class="n">logger</span><span class="o">=</span><span class="n">logger</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos">76</span></a>    <span class="p">)</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos">77</span></a>    <span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">datamodule</span><span class="o">=</span><span class="n">data_module</span><span class="p">)</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos">78</span></a>    <span class="k">return</span> <span class="n">trainer</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">"""Neural network model definition and training loop for AI text detection.</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="sd">This module provides the `Net` PyTorch Lightning module representing a multi-layer</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="sd">perceptron classifier, as well as the `train` routine with checkpointing and logging.</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="sd">"""</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.optim</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">optim</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytorch_lightning</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">lightning.pytorch.loggers</span><span class="w"> </span><span class="kn">import</span> <span class="n">CSVLogger</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">lightning.pytorch.callbacks</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelCheckpoint</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Net</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="w">    </span><span class="sd">"""Multi-Layer Perceptron (MLP) binary classifier for AI vs human text detection.</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">    Consists of an input linear layer (10 inputs -&gt; 64 hidden units), ReLU activation,</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">    and a final linear layer producing binary classification logits (2 outputs).</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">    Attributes:</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="sd">        l1 (nn.Sequential): Sequential feed-forward layers.</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">        loss_fn (nn.CrossEntropyLoss): Cross-entropy loss function.</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">        train_losses (list[float]): History of epoch average training losses.</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">        train_accs (list[float]): History of epoch average training accuracies.</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">        training_step_outputs (list[dict]): Temporary metric container for step-level outputs.</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">    """</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="w">        </span><span class="sd">"""Initializes the network layers, loss function, and tracking metrics."""</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">l1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_losses</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_accs</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="w">        </span><span class="sd">"""Performs a forward pass through the network.</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="sd">        Args:</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="sd">            x (torch.Tensor): Input feature tensor of shape `(batch_size, 10)`.</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a><span class="sd">        Returns:</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="sd">            torch.Tensor: Unnormalized output logits of shape `(batch_size, 2)`.</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a><span class="sd">        """</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">l1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="w">        </span><span class="sd">"""Executes a single training step.</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd">        Computes Cross-Entropy loss and accuracy, logs step and epoch values,</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">        and records batch metrics.</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a><span class="sd">        Args:</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">            batch (tuple[torch.Tensor, torch.Tensor]): Tuple containing batch features and labels.</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">            batch_idx (int): Index of the current batch.</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a><span class="sd">        Returns:</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="sd">            torch.Tensor: Computed training loss for backpropagation.</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">        """</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>        <span class="n">xb</span><span class="p">,</span> <span class="n">yb</span> <span class="o">=</span> <span class="n">batch</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">xb</span><span class="p">)</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">yb</span><span class="p">)</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>        <span class="n">preds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>        <span class="n">acc</span> <span class="o">=</span> <span class="p">(</span><span class="n">preds</span> <span class="o">==</span> <span class="n">yb</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_loss'</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_acc'</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>            <span class="s1">'loss'</span><span class="p">:</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>            <span class="s1">'acc'</span><span class="p">:</span> <span class="n">acc</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>        <span class="p">})</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>        <span class="k">return</span> <span class="n">loss</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">on_train_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="w">        </span><span class="sd">"""Aggregates and logs epoch-level average loss and accuracy."""</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">:</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>            <span class="n">avg_loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s1">'loss'</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">)</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>            <span class="n">avg_acc</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s1">'acc'</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">)</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_loss</span><span class="p">)</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_accs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_acc</span><span class="p">)</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'epoch_train_loss'</span><span class="p">,</span> <span class="n">avg_loss</span><span class="p">)</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'epoch_train_acc'</span><span class="p">,</span> <span class="n">avg_acc</span><span class="p">)</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>    
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="w">        </span><span class="sd">"""Configures the optimizer for model training.</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="sd">        Returns:</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="sd">            torch.optim.Optimizer: Adam optimizer initialized with model parameters.</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="sd">        """</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>        <span class="k">return</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>    
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="w">        </span><span class="sd">"""Runs prediction on a batch during trainer inference.</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a><span class="sd">        Args:</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a><span class="sd">            batch (tuple[torch.Tensor, torch.Tensor]): Tuple of features and ground-truth labels.</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="sd">            batch_idx (int): Index of the current batch.</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="sd">            dataloader_idx (int, optional): Index of the dataloader. Defaults to 0.</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="sd">        Returns:</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a><span class="sd">            dict[str, torch.Tensor]: Dictionary containing 'predictions', 'probabilities',</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="sd">                'labels', and 'features'.</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="sd">        """</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>        <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="n">preds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>        <span class="k">return</span> <span class="p">{</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>            <span class="s1">'predictions'</span><span class="p">:</span> <span class="n">preds</span><span class="p">,</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>            <span class="s1">'probabilities'</span><span class="p">:</span> <span class="n">probs</span><span class="p">,</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>            <span class="s1">'labels'</span><span class="p">:</span> <span class="n">y</span><span class="p">,</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>            <span class="s1">'features'</span><span class="p">:</span> <span class="n">x</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>        <span class="p">}</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">data_module</span><span class="p">,</span><span class="n">model_path</span><span class="p">,</span><span class="n">logger_path</span><span class="p">):</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="w">    </span><span class="sd">"""Initializes and trains the Net classifier using PyTorch Lightning.</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">    Configures a CSVLogger, best-model ModelCheckpoint callback, and CPU Trainer,</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="sd">    then fits the model for 20 epochs on the provided DataModule.</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a><span class="sd">    Args:</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="sd">        data_module (pl.LightningDataModule): Initialized DataModule providing training data.</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="sd">        model_path (str): Directory where model checkpoints will be stored.</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="sd">        logger_path (str): Directory where CSV training logs will be saved.</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="sd">    Returns:</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a><span class="sd">        pl.Trainer: Trained Lightning Trainer instance.</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="sd">    Example:</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a><span class="sd">        &gt;&gt;&gt; dm = CSVDataModule("data/benchmark.csv")</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="sd">        &gt;&gt;&gt; trainer = train(dm, model_path="models/", logger_path="logs/")</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="sd">    """</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>    <span class="n">net</span> <span class="o">=</span> <span class="n">Net</span><span class="p">()</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>    <span class="n">logger</span> <span class="o">=</span> <span class="n">CSVLogger</span><span class="p">(</span><span class="n">save_dir</span><span class="o">=</span><span class="n">logger_path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"train_log"</span><span class="p">)</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>    <span class="n">checkpoint_callback</span> <span class="o">=</span> <span class="n">ModelCheckpoint</span><span class="p">(</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>        <span class="n">dirpath</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>        <span class="n">filename</span><span class="o">=</span><span class="s1">'best-</span><span class="si">{epoch:02d}</span><span class="s1">-</span><span class="si">{train_loss:.2f}</span><span class="s1">'</span><span class="p">,</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>        <span class="n">monitor</span><span class="o">=</span><span class="s1">'train_loss'</span><span class="p">,</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>        <span class="n">mode</span><span class="o">=</span><span class="s1">'min'</span><span class="p">,</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>        <span class="n">save_top_k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>        <span class="n">save_last</span><span class="o">=</span><span class="kc">True</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>    <span class="p">)</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="n">trainer</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">Trainer</span><span class="p">(</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>        <span class="n">max_epochs</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> 
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>        <span class="n">callbacks</span><span class="o">=</span><span class="p">[</span><span class="n">checkpoint_callback</span><span class="p">],</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>        <span class="n">default_root_dir</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span> 
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>        <span class="n">accelerator</span><span class="o">=</span><span class="s2">"cpu"</span><span class="p">,</span> <span class="n">devices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>        <span class="n">enable_progress_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>        <span class="n">logger</span><span class="o">=</span><span class="n">logger</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>    <span class="p">)</span>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>    <span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">datamodule</span><span class="o">=</span><span class="n">data_module</span><span class="p">)</span>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>    <span class="k">return</span> <span class="n">trainer</span>
 </span></pre></div>
 
 
@@ -186,60 +265,121 @@
 
     </div>
     <a class="headerlink" href="#Net"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Net-9"><a href="#Net-9"><span class="linenos"> 9</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Net</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
-</span><span id="Net-10"><a href="#Net-10"><span class="linenos">10</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Net-11"><a href="#Net-11"><span class="linenos">11</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span id="Net-12"><a href="#Net-12"><span class="linenos">12</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">l1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-</span><span id="Net-13"><a href="#Net-13"><span class="linenos">13</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
-</span><span id="Net-14"><a href="#Net-14"><span class="linenos">14</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_losses</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="Net-15"><a href="#Net-15"><span class="linenos">15</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_accs</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="Net-16"><a href="#Net-16"><span class="linenos">16</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="Net-17"><a href="#Net-17"><span class="linenos">17</span></a>
-</span><span id="Net-18"><a href="#Net-18"><span class="linenos">18</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-</span><span id="Net-19"><a href="#Net-19"><span class="linenos">19</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">l1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</span><span id="Net-20"><a href="#Net-20"><span class="linenos">20</span></a>
-</span><span id="Net-21"><a href="#Net-21"><span class="linenos">21</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
-</span><span id="Net-22"><a href="#Net-22"><span class="linenos">22</span></a>        <span class="n">xb</span><span class="p">,</span> <span class="n">yb</span> <span class="o">=</span> <span class="n">batch</span>
-</span><span id="Net-23"><a href="#Net-23"><span class="linenos">23</span></a>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">xb</span><span class="p">)</span>
-</span><span id="Net-24"><a href="#Net-24"><span class="linenos">24</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">yb</span><span class="p">)</span>
-</span><span id="Net-25"><a href="#Net-25"><span class="linenos">25</span></a>        <span class="n">preds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="Net-26"><a href="#Net-26"><span class="linenos">26</span></a>        <span class="n">acc</span> <span class="o">=</span> <span class="p">(</span><span class="n">preds</span> <span class="o">==</span> <span class="n">yb</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-</span><span id="Net-27"><a href="#Net-27"><span class="linenos">27</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_loss'</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="Net-28"><a href="#Net-28"><span class="linenos">28</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_acc'</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="Net-29"><a href="#Net-29"><span class="linenos">29</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-</span><span id="Net-30"><a href="#Net-30"><span class="linenos">30</span></a>            <span class="s1">'loss'</span><span class="p">:</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
-</span><span id="Net-31"><a href="#Net-31"><span class="linenos">31</span></a>            <span class="s1">'acc'</span><span class="p">:</span> <span class="n">acc</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-</span><span id="Net-32"><a href="#Net-32"><span class="linenos">32</span></a>        <span class="p">})</span>
-</span><span id="Net-33"><a href="#Net-33"><span class="linenos">33</span></a>        <span class="k">return</span> <span class="n">loss</span>
-</span><span id="Net-34"><a href="#Net-34"><span class="linenos">34</span></a>
-</span><span id="Net-35"><a href="#Net-35"><span class="linenos">35</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">on_train_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Net-36"><a href="#Net-36"><span class="linenos">36</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">:</span>
-</span><span id="Net-37"><a href="#Net-37"><span class="linenos">37</span></a>            <span class="n">avg_loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s1">'loss'</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">)</span>
-</span><span id="Net-38"><a href="#Net-38"><span class="linenos">38</span></a>            <span class="n">avg_acc</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s1">'acc'</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">)</span>
-</span><span id="Net-39"><a href="#Net-39"><span class="linenos">39</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_loss</span><span class="p">)</span>
-</span><span id="Net-40"><a href="#Net-40"><span class="linenos">40</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_accs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_acc</span><span class="p">)</span>
-</span><span id="Net-41"><a href="#Net-41"><span class="linenos">41</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'epoch_train_loss'</span><span class="p">,</span> <span class="n">avg_loss</span><span class="p">)</span>
-</span><span id="Net-42"><a href="#Net-42"><span class="linenos">42</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'epoch_train_acc'</span><span class="p">,</span> <span class="n">avg_acc</span><span class="p">)</span>
-</span><span id="Net-43"><a href="#Net-43"><span class="linenos">43</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-</span><span id="Net-44"><a href="#Net-44"><span class="linenos">44</span></a>    
-</span><span id="Net-45"><a href="#Net-45"><span class="linenos">45</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Net-46"><a href="#Net-46"><span class="linenos">46</span></a>        <span class="k">return</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
-</span><span id="Net-47"><a href="#Net-47"><span class="linenos">47</span></a>    
-</span><span id="Net-48"><a href="#Net-48"><span class="linenos">48</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-</span><span id="Net-49"><a href="#Net-49"><span class="linenos">49</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
-</span><span id="Net-50"><a href="#Net-50"><span class="linenos">50</span></a>        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</span><span id="Net-51"><a href="#Net-51"><span class="linenos">51</span></a>        <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="Net-52"><a href="#Net-52"><span class="linenos">52</span></a>        <span class="n">preds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="Net-53"><a href="#Net-53"><span class="linenos">53</span></a>        <span class="k">return</span> <span class="p">{</span>
-</span><span id="Net-54"><a href="#Net-54"><span class="linenos">54</span></a>            <span class="s1">'predictions'</span><span class="p">:</span> <span class="n">preds</span><span class="p">,</span>
-</span><span id="Net-55"><a href="#Net-55"><span class="linenos">55</span></a>            <span class="s1">'probabilities'</span><span class="p">:</span> <span class="n">probs</span><span class="p">,</span>
-</span><span id="Net-56"><a href="#Net-56"><span class="linenos">56</span></a>            <span class="s1">'labels'</span><span class="p">:</span> <span class="n">y</span><span class="p">,</span>
-</span><span id="Net-57"><a href="#Net-57"><span class="linenos">57</span></a>            <span class="s1">'features'</span><span class="p">:</span> <span class="n">x</span>
-</span><span id="Net-58"><a href="#Net-58"><span class="linenos">58</span></a>        <span class="p">}</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Net-15"><a href="#Net-15"><span class="linenos"> 15</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Net</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
+</span><span id="Net-16"><a href="#Net-16"><span class="linenos"> 16</span></a><span class="w">    </span><span class="sd">"""Multi-Layer Perceptron (MLP) binary classifier for AI vs human text detection.</span>
+</span><span id="Net-17"><a href="#Net-17"><span class="linenos"> 17</span></a>
+</span><span id="Net-18"><a href="#Net-18"><span class="linenos"> 18</span></a><span class="sd">    Consists of an input linear layer (10 inputs -&gt; 64 hidden units), ReLU activation,</span>
+</span><span id="Net-19"><a href="#Net-19"><span class="linenos"> 19</span></a><span class="sd">    and a final linear layer producing binary classification logits (2 outputs).</span>
+</span><span id="Net-20"><a href="#Net-20"><span class="linenos"> 20</span></a>
+</span><span id="Net-21"><a href="#Net-21"><span class="linenos"> 21</span></a><span class="sd">    Attributes:</span>
+</span><span id="Net-22"><a href="#Net-22"><span class="linenos"> 22</span></a><span class="sd">        l1 (nn.Sequential): Sequential feed-forward layers.</span>
+</span><span id="Net-23"><a href="#Net-23"><span class="linenos"> 23</span></a><span class="sd">        loss_fn (nn.CrossEntropyLoss): Cross-entropy loss function.</span>
+</span><span id="Net-24"><a href="#Net-24"><span class="linenos"> 24</span></a><span class="sd">        train_losses (list[float]): History of epoch average training losses.</span>
+</span><span id="Net-25"><a href="#Net-25"><span class="linenos"> 25</span></a><span class="sd">        train_accs (list[float]): History of epoch average training accuracies.</span>
+</span><span id="Net-26"><a href="#Net-26"><span class="linenos"> 26</span></a><span class="sd">        training_step_outputs (list[dict]): Temporary metric container for step-level outputs.</span>
+</span><span id="Net-27"><a href="#Net-27"><span class="linenos"> 27</span></a><span class="sd">    """</span>
+</span><span id="Net-28"><a href="#Net-28"><span class="linenos"> 28</span></a>
+</span><span id="Net-29"><a href="#Net-29"><span class="linenos"> 29</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Net-30"><a href="#Net-30"><span class="linenos"> 30</span></a><span class="w">        </span><span class="sd">"""Initializes the network layers, loss function, and tracking metrics."""</span>
+</span><span id="Net-31"><a href="#Net-31"><span class="linenos"> 31</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span id="Net-32"><a href="#Net-32"><span class="linenos"> 32</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">l1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</span><span id="Net-33"><a href="#Net-33"><span class="linenos"> 33</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
+</span><span id="Net-34"><a href="#Net-34"><span class="linenos"> 34</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_losses</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Net-35"><a href="#Net-35"><span class="linenos"> 35</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_accs</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Net-36"><a href="#Net-36"><span class="linenos"> 36</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Net-37"><a href="#Net-37"><span class="linenos"> 37</span></a>
+</span><span id="Net-38"><a href="#Net-38"><span class="linenos"> 38</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+</span><span id="Net-39"><a href="#Net-39"><span class="linenos"> 39</span></a><span class="w">        </span><span class="sd">"""Performs a forward pass through the network.</span>
+</span><span id="Net-40"><a href="#Net-40"><span class="linenos"> 40</span></a>
+</span><span id="Net-41"><a href="#Net-41"><span class="linenos"> 41</span></a><span class="sd">        Args:</span>
+</span><span id="Net-42"><a href="#Net-42"><span class="linenos"> 42</span></a><span class="sd">            x (torch.Tensor): Input feature tensor of shape `(batch_size, 10)`.</span>
+</span><span id="Net-43"><a href="#Net-43"><span class="linenos"> 43</span></a>
+</span><span id="Net-44"><a href="#Net-44"><span class="linenos"> 44</span></a><span class="sd">        Returns:</span>
+</span><span id="Net-45"><a href="#Net-45"><span class="linenos"> 45</span></a><span class="sd">            torch.Tensor: Unnormalized output logits of shape `(batch_size, 2)`.</span>
+</span><span id="Net-46"><a href="#Net-46"><span class="linenos"> 46</span></a><span class="sd">        """</span>
+</span><span id="Net-47"><a href="#Net-47"><span class="linenos"> 47</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">l1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="Net-48"><a href="#Net-48"><span class="linenos"> 48</span></a>
+</span><span id="Net-49"><a href="#Net-49"><span class="linenos"> 49</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+</span><span id="Net-50"><a href="#Net-50"><span class="linenos"> 50</span></a><span class="w">        </span><span class="sd">"""Executes a single training step.</span>
+</span><span id="Net-51"><a href="#Net-51"><span class="linenos"> 51</span></a>
+</span><span id="Net-52"><a href="#Net-52"><span class="linenos"> 52</span></a><span class="sd">        Computes Cross-Entropy loss and accuracy, logs step and epoch values,</span>
+</span><span id="Net-53"><a href="#Net-53"><span class="linenos"> 53</span></a><span class="sd">        and records batch metrics.</span>
+</span><span id="Net-54"><a href="#Net-54"><span class="linenos"> 54</span></a>
+</span><span id="Net-55"><a href="#Net-55"><span class="linenos"> 55</span></a><span class="sd">        Args:</span>
+</span><span id="Net-56"><a href="#Net-56"><span class="linenos"> 56</span></a><span class="sd">            batch (tuple[torch.Tensor, torch.Tensor]): Tuple containing batch features and labels.</span>
+</span><span id="Net-57"><a href="#Net-57"><span class="linenos"> 57</span></a><span class="sd">            batch_idx (int): Index of the current batch.</span>
+</span><span id="Net-58"><a href="#Net-58"><span class="linenos"> 58</span></a>
+</span><span id="Net-59"><a href="#Net-59"><span class="linenos"> 59</span></a><span class="sd">        Returns:</span>
+</span><span id="Net-60"><a href="#Net-60"><span class="linenos"> 60</span></a><span class="sd">            torch.Tensor: Computed training loss for backpropagation.</span>
+</span><span id="Net-61"><a href="#Net-61"><span class="linenos"> 61</span></a><span class="sd">        """</span>
+</span><span id="Net-62"><a href="#Net-62"><span class="linenos"> 62</span></a>        <span class="n">xb</span><span class="p">,</span> <span class="n">yb</span> <span class="o">=</span> <span class="n">batch</span>
+</span><span id="Net-63"><a href="#Net-63"><span class="linenos"> 63</span></a>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">xb</span><span class="p">)</span>
+</span><span id="Net-64"><a href="#Net-64"><span class="linenos"> 64</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">yb</span><span class="p">)</span>
+</span><span id="Net-65"><a href="#Net-65"><span class="linenos"> 65</span></a>        <span class="n">preds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="Net-66"><a href="#Net-66"><span class="linenos"> 66</span></a>        <span class="n">acc</span> <span class="o">=</span> <span class="p">(</span><span class="n">preds</span> <span class="o">==</span> <span class="n">yb</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+</span><span id="Net-67"><a href="#Net-67"><span class="linenos"> 67</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_loss'</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="Net-68"><a href="#Net-68"><span class="linenos"> 68</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_acc'</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="Net-69"><a href="#Net-69"><span class="linenos"> 69</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+</span><span id="Net-70"><a href="#Net-70"><span class="linenos"> 70</span></a>            <span class="s1">'loss'</span><span class="p">:</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+</span><span id="Net-71"><a href="#Net-71"><span class="linenos"> 71</span></a>            <span class="s1">'acc'</span><span class="p">:</span> <span class="n">acc</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+</span><span id="Net-72"><a href="#Net-72"><span class="linenos"> 72</span></a>        <span class="p">})</span>
+</span><span id="Net-73"><a href="#Net-73"><span class="linenos"> 73</span></a>        <span class="k">return</span> <span class="n">loss</span>
+</span><span id="Net-74"><a href="#Net-74"><span class="linenos"> 74</span></a>
+</span><span id="Net-75"><a href="#Net-75"><span class="linenos"> 75</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">on_train_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Net-76"><a href="#Net-76"><span class="linenos"> 76</span></a><span class="w">        </span><span class="sd">"""Aggregates and logs epoch-level average loss and accuracy."""</span>
+</span><span id="Net-77"><a href="#Net-77"><span class="linenos"> 77</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">:</span>
+</span><span id="Net-78"><a href="#Net-78"><span class="linenos"> 78</span></a>            <span class="n">avg_loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s1">'loss'</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">)</span>
+</span><span id="Net-79"><a href="#Net-79"><span class="linenos"> 79</span></a>            <span class="n">avg_acc</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s1">'acc'</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">)</span>
+</span><span id="Net-80"><a href="#Net-80"><span class="linenos"> 80</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_loss</span><span class="p">)</span>
+</span><span id="Net-81"><a href="#Net-81"><span class="linenos"> 81</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_accs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_acc</span><span class="p">)</span>
+</span><span id="Net-82"><a href="#Net-82"><span class="linenos"> 82</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'epoch_train_loss'</span><span class="p">,</span> <span class="n">avg_loss</span><span class="p">)</span>
+</span><span id="Net-83"><a href="#Net-83"><span class="linenos"> 83</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'epoch_train_acc'</span><span class="p">,</span> <span class="n">avg_acc</span><span class="p">)</span>
+</span><span id="Net-84"><a href="#Net-84"><span class="linenos"> 84</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</span><span id="Net-85"><a href="#Net-85"><span class="linenos"> 85</span></a>    
+</span><span id="Net-86"><a href="#Net-86"><span class="linenos"> 86</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Net-87"><a href="#Net-87"><span class="linenos"> 87</span></a><span class="w">        </span><span class="sd">"""Configures the optimizer for model training.</span>
+</span><span id="Net-88"><a href="#Net-88"><span class="linenos"> 88</span></a>
+</span><span id="Net-89"><a href="#Net-89"><span class="linenos"> 89</span></a><span class="sd">        Returns:</span>
+</span><span id="Net-90"><a href="#Net-90"><span class="linenos"> 90</span></a><span class="sd">            torch.optim.Optimizer: Adam optimizer initialized with model parameters.</span>
+</span><span id="Net-91"><a href="#Net-91"><span class="linenos"> 91</span></a><span class="sd">        """</span>
+</span><span id="Net-92"><a href="#Net-92"><span class="linenos"> 92</span></a>        <span class="k">return</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+</span><span id="Net-93"><a href="#Net-93"><span class="linenos"> 93</span></a>    
+</span><span id="Net-94"><a href="#Net-94"><span class="linenos"> 94</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+</span><span id="Net-95"><a href="#Net-95"><span class="linenos"> 95</span></a><span class="w">        </span><span class="sd">"""Runs prediction on a batch during trainer inference.</span>
+</span><span id="Net-96"><a href="#Net-96"><span class="linenos"> 96</span></a>
+</span><span id="Net-97"><a href="#Net-97"><span class="linenos"> 97</span></a><span class="sd">        Args:</span>
+</span><span id="Net-98"><a href="#Net-98"><span class="linenos"> 98</span></a><span class="sd">            batch (tuple[torch.Tensor, torch.Tensor]): Tuple of features and ground-truth labels.</span>
+</span><span id="Net-99"><a href="#Net-99"><span class="linenos"> 99</span></a><span class="sd">            batch_idx (int): Index of the current batch.</span>
+</span><span id="Net-100"><a href="#Net-100"><span class="linenos">100</span></a><span class="sd">            dataloader_idx (int, optional): Index of the dataloader. Defaults to 0.</span>
+</span><span id="Net-101"><a href="#Net-101"><span class="linenos">101</span></a>
+</span><span id="Net-102"><a href="#Net-102"><span class="linenos">102</span></a><span class="sd">        Returns:</span>
+</span><span id="Net-103"><a href="#Net-103"><span class="linenos">103</span></a><span class="sd">            dict[str, torch.Tensor]: Dictionary containing 'predictions', 'probabilities',</span>
+</span><span id="Net-104"><a href="#Net-104"><span class="linenos">104</span></a><span class="sd">                'labels', and 'features'.</span>
+</span><span id="Net-105"><a href="#Net-105"><span class="linenos">105</span></a><span class="sd">        """</span>
+</span><span id="Net-106"><a href="#Net-106"><span class="linenos">106</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
+</span><span id="Net-107"><a href="#Net-107"><span class="linenos">107</span></a>        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="Net-108"><a href="#Net-108"><span class="linenos">108</span></a>        <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="Net-109"><a href="#Net-109"><span class="linenos">109</span></a>        <span class="n">preds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="Net-110"><a href="#Net-110"><span class="linenos">110</span></a>        <span class="k">return</span> <span class="p">{</span>
+</span><span id="Net-111"><a href="#Net-111"><span class="linenos">111</span></a>            <span class="s1">'predictions'</span><span class="p">:</span> <span class="n">preds</span><span class="p">,</span>
+</span><span id="Net-112"><a href="#Net-112"><span class="linenos">112</span></a>            <span class="s1">'probabilities'</span><span class="p">:</span> <span class="n">probs</span><span class="p">,</span>
+</span><span id="Net-113"><a href="#Net-113"><span class="linenos">113</span></a>            <span class="s1">'labels'</span><span class="p">:</span> <span class="n">y</span><span class="p">,</span>
+</span><span id="Net-114"><a href="#Net-114"><span class="linenos">114</span></a>            <span class="s1">'features'</span><span class="p">:</span> <span class="n">x</span>
+</span><span id="Net-115"><a href="#Net-115"><span class="linenos">115</span></a>        <span class="p">}</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Hooks to be used in LightningModule.</p>
+            <div class="docstring"><p>Multi-Layer Perceptron (MLP) binary classifier for AI vs human text detection.</p>
+
+<p>Consists of an input linear layer (10 inputs -> 64 hidden units), ReLU activation,
+and a final linear layer producing binary classification logits (2 outputs).</p>
+
+<p>Attributes:
+    l1 (nn.Sequential): Sequential feed-forward layers.
+    loss_fn (nn.CrossEntropyLoss): Cross-entropy loss function.
+    train_losses (list[float]): History of epoch average training losses.
+    train_accs (list[float]): History of epoch average training accuracies.
+    training_step_outputs (list[dict]): Temporary metric container for step-level outputs.</p>
 </div>
 
 
@@ -253,23 +393,18 @@
 
     </div>
     <a class="headerlink" href="#Net.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Net.__init__-10"><a href="#Net.__init__-10"><span class="linenos">10</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Net.__init__-11"><a href="#Net.__init__-11"><span class="linenos">11</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span id="Net.__init__-12"><a href="#Net.__init__-12"><span class="linenos">12</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">l1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-</span><span id="Net.__init__-13"><a href="#Net.__init__-13"><span class="linenos">13</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
-</span><span id="Net.__init__-14"><a href="#Net.__init__-14"><span class="linenos">14</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_losses</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="Net.__init__-15"><a href="#Net.__init__-15"><span class="linenos">15</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_accs</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="Net.__init__-16"><a href="#Net.__init__-16"><span class="linenos">16</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Net.__init__-29"><a href="#Net.__init__-29"><span class="linenos">29</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Net.__init__-30"><a href="#Net.__init__-30"><span class="linenos">30</span></a><span class="w">        </span><span class="sd">"""Initializes the network layers, loss function, and tracking metrics."""</span>
+</span><span id="Net.__init__-31"><a href="#Net.__init__-31"><span class="linenos">31</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span id="Net.__init__-32"><a href="#Net.__init__-32"><span class="linenos">32</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">l1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</span><span id="Net.__init__-33"><a href="#Net.__init__-33"><span class="linenos">33</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
+</span><span id="Net.__init__-34"><a href="#Net.__init__-34"><span class="linenos">34</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_losses</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Net.__init__-35"><a href="#Net.__init__-35"><span class="linenos">35</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">train_accs</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Net.__init__-36"><a href="#Net.__init__-36"><span class="linenos">36</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span> <span class="o">=</span> <span class="p">[]</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Attributes:
-    prepare_data_per_node:
-        If True, each LOCAL_RANK=0 will call prepare data.
-        Otherwise only NODE_RANK=0, LOCAL_RANK=0 will prepare data.
-    allow_zero_length_dataloader_with_multiple_devices:
-        If True, dataloader with zero length within local rank is allowed.
-        Default value is False.</p>
+            <div class="docstring"><p>Initializes the network layers, loss function, and tracking metrics.</p>
 </div>
 
 
@@ -340,19 +475,26 @@
 
     </div>
     <a class="headerlink" href="#Net.forward"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Net.forward-18"><a href="#Net.forward-18"><span class="linenos">18</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-</span><span id="Net.forward-19"><a href="#Net.forward-19"><span class="linenos">19</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">l1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Net.forward-38"><a href="#Net.forward-38"><span class="linenos">38</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+</span><span id="Net.forward-39"><a href="#Net.forward-39"><span class="linenos">39</span></a><span class="w">        </span><span class="sd">"""Performs a forward pass through the network.</span>
+</span><span id="Net.forward-40"><a href="#Net.forward-40"><span class="linenos">40</span></a>
+</span><span id="Net.forward-41"><a href="#Net.forward-41"><span class="linenos">41</span></a><span class="sd">        Args:</span>
+</span><span id="Net.forward-42"><a href="#Net.forward-42"><span class="linenos">42</span></a><span class="sd">            x (torch.Tensor): Input feature tensor of shape `(batch_size, 10)`.</span>
+</span><span id="Net.forward-43"><a href="#Net.forward-43"><span class="linenos">43</span></a>
+</span><span id="Net.forward-44"><a href="#Net.forward-44"><span class="linenos">44</span></a><span class="sd">        Returns:</span>
+</span><span id="Net.forward-45"><a href="#Net.forward-45"><span class="linenos">45</span></a><span class="sd">            torch.Tensor: Unnormalized output logits of shape `(batch_size, 2)`.</span>
+</span><span id="Net.forward-46"><a href="#Net.forward-46"><span class="linenos">46</span></a><span class="sd">        """</span>
+</span><span id="Net.forward-47"><a href="#Net.forward-47"><span class="linenos">47</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">l1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Same as <code>torch.nn.Module.forward()</code>.</p>
+            <div class="docstring"><p>Performs a forward pass through the network.</p>
 
 <p>Args:
-    *args: Whatever you decide to pass into the forward method.
-    **kwargs: Keyword arguments are also possible.</p>
+    x (torch.Tensor): Input feature tensor of shape <code>(batch_size, 10)</code>.</p>
 
-<p>Return:
-    Your model's output</p>
+<p>Returns:
+    torch.Tensor: Unnormalized output logits of shape <code>(batch_size, 2)</code>.</p>
 </div>
 
 
@@ -368,75 +510,45 @@
 
     </div>
     <a class="headerlink" href="#Net.training_step"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Net.training_step-21"><a href="#Net.training_step-21"><span class="linenos">21</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
-</span><span id="Net.training_step-22"><a href="#Net.training_step-22"><span class="linenos">22</span></a>        <span class="n">xb</span><span class="p">,</span> <span class="n">yb</span> <span class="o">=</span> <span class="n">batch</span>
-</span><span id="Net.training_step-23"><a href="#Net.training_step-23"><span class="linenos">23</span></a>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">xb</span><span class="p">)</span>
-</span><span id="Net.training_step-24"><a href="#Net.training_step-24"><span class="linenos">24</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">yb</span><span class="p">)</span>
-</span><span id="Net.training_step-25"><a href="#Net.training_step-25"><span class="linenos">25</span></a>        <span class="n">preds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="Net.training_step-26"><a href="#Net.training_step-26"><span class="linenos">26</span></a>        <span class="n">acc</span> <span class="o">=</span> <span class="p">(</span><span class="n">preds</span> <span class="o">==</span> <span class="n">yb</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-</span><span id="Net.training_step-27"><a href="#Net.training_step-27"><span class="linenos">27</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_loss'</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="Net.training_step-28"><a href="#Net.training_step-28"><span class="linenos">28</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_acc'</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="Net.training_step-29"><a href="#Net.training_step-29"><span class="linenos">29</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-</span><span id="Net.training_step-30"><a href="#Net.training_step-30"><span class="linenos">30</span></a>            <span class="s1">'loss'</span><span class="p">:</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
-</span><span id="Net.training_step-31"><a href="#Net.training_step-31"><span class="linenos">31</span></a>            <span class="s1">'acc'</span><span class="p">:</span> <span class="n">acc</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-</span><span id="Net.training_step-32"><a href="#Net.training_step-32"><span class="linenos">32</span></a>        <span class="p">})</span>
-</span><span id="Net.training_step-33"><a href="#Net.training_step-33"><span class="linenos">33</span></a>        <span class="k">return</span> <span class="n">loss</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Net.training_step-49"><a href="#Net.training_step-49"><span class="linenos">49</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+</span><span id="Net.training_step-50"><a href="#Net.training_step-50"><span class="linenos">50</span></a><span class="w">        </span><span class="sd">"""Executes a single training step.</span>
+</span><span id="Net.training_step-51"><a href="#Net.training_step-51"><span class="linenos">51</span></a>
+</span><span id="Net.training_step-52"><a href="#Net.training_step-52"><span class="linenos">52</span></a><span class="sd">        Computes Cross-Entropy loss and accuracy, logs step and epoch values,</span>
+</span><span id="Net.training_step-53"><a href="#Net.training_step-53"><span class="linenos">53</span></a><span class="sd">        and records batch metrics.</span>
+</span><span id="Net.training_step-54"><a href="#Net.training_step-54"><span class="linenos">54</span></a>
+</span><span id="Net.training_step-55"><a href="#Net.training_step-55"><span class="linenos">55</span></a><span class="sd">        Args:</span>
+</span><span id="Net.training_step-56"><a href="#Net.training_step-56"><span class="linenos">56</span></a><span class="sd">            batch (tuple[torch.Tensor, torch.Tensor]): Tuple containing batch features and labels.</span>
+</span><span id="Net.training_step-57"><a href="#Net.training_step-57"><span class="linenos">57</span></a><span class="sd">            batch_idx (int): Index of the current batch.</span>
+</span><span id="Net.training_step-58"><a href="#Net.training_step-58"><span class="linenos">58</span></a>
+</span><span id="Net.training_step-59"><a href="#Net.training_step-59"><span class="linenos">59</span></a><span class="sd">        Returns:</span>
+</span><span id="Net.training_step-60"><a href="#Net.training_step-60"><span class="linenos">60</span></a><span class="sd">            torch.Tensor: Computed training loss for backpropagation.</span>
+</span><span id="Net.training_step-61"><a href="#Net.training_step-61"><span class="linenos">61</span></a><span class="sd">        """</span>
+</span><span id="Net.training_step-62"><a href="#Net.training_step-62"><span class="linenos">62</span></a>        <span class="n">xb</span><span class="p">,</span> <span class="n">yb</span> <span class="o">=</span> <span class="n">batch</span>
+</span><span id="Net.training_step-63"><a href="#Net.training_step-63"><span class="linenos">63</span></a>        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">xb</span><span class="p">)</span>
+</span><span id="Net.training_step-64"><a href="#Net.training_step-64"><span class="linenos">64</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">yb</span><span class="p">)</span>
+</span><span id="Net.training_step-65"><a href="#Net.training_step-65"><span class="linenos">65</span></a>        <span class="n">preds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="Net.training_step-66"><a href="#Net.training_step-66"><span class="linenos">66</span></a>        <span class="n">acc</span> <span class="o">=</span> <span class="p">(</span><span class="n">preds</span> <span class="o">==</span> <span class="n">yb</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+</span><span id="Net.training_step-67"><a href="#Net.training_step-67"><span class="linenos">67</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_loss'</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="Net.training_step-68"><a href="#Net.training_step-68"><span class="linenos">68</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'train_acc'</span><span class="p">,</span> <span class="n">acc</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="Net.training_step-69"><a href="#Net.training_step-69"><span class="linenos">69</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+</span><span id="Net.training_step-70"><a href="#Net.training_step-70"><span class="linenos">70</span></a>            <span class="s1">'loss'</span><span class="p">:</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span>
+</span><span id="Net.training_step-71"><a href="#Net.training_step-71"><span class="linenos">71</span></a>            <span class="s1">'acc'</span><span class="p">:</span> <span class="n">acc</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+</span><span id="Net.training_step-72"><a href="#Net.training_step-72"><span class="linenos">72</span></a>        <span class="p">})</span>
+</span><span id="Net.training_step-73"><a href="#Net.training_step-73"><span class="linenos">73</span></a>        <span class="k">return</span> <span class="n">loss</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Here you compute and return the training loss and some additional metrics for e.g. the progress bar or
-logger.</p>
+            <div class="docstring"><p>Executes a single training step.</p>
+
+<p>Computes Cross-Entropy loss and accuracy, logs step and epoch values,
+and records batch metrics.</p>
 
 <p>Args:
-    batch: The output of your data iterable, normally a <code>~torch.utils.data.DataLoader</code>.
-    batch_idx: The index of this batch.
-    dataloader_idx: The index of the dataloader that produced this batch.
-        (only if multiple dataloaders used)</p>
+    batch (tuple[torch.Tensor, torch.Tensor]): Tuple containing batch features and labels.
+    batch_idx (int): Index of the current batch.</p>
 
-<p>Return:
-    - <code>~torch.Tensor</code> - The loss tensor
-    - <code>dict</code> - A dictionary which can include any keys, but must include the key <code>'loss'</code> in the case of
-      automatic optimization.
-    - <code>None</code> - In automatic optimization, this will skip to the next batch (but is not supported for
-      multi-GPU, TPU, or DeepSpeed). For manual optimization, this has no special meaning, as returning
-      the loss is not required.</p>
-
-<p>In this step you'd normally do the forward pass and calculate the loss for a batch.
-You can also do fancier things like multiple forward passes or something model specific.</p>
-
-<p>Example::</p>
-
-<pre><code>def training_step(self, batch, batch_idx):
-    x, y, z = batch
-    out = self.encoder(x)
-    loss = self.loss(out, x)
-    return loss
-</code></pre>
-
-<p>To use multiple optimizers, you can switch to 'manual optimization' and control their stepping:</p>
-
-<div class="pdoc-code codehilite">
-<pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">automatic_optimization</span> <span class="o">=</span> <span class="kc">False</span>
-
-
-<span class="c1"># Multiple optimizers (e.g.: GANs)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
-    <span class="n">opt1</span><span class="p">,</span> <span class="n">opt2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizers</span><span class="p">()</span>
-
-    <span class="c1"># do training_step with encoder</span>
-    <span class="o">...</span>
-    <span class="n">opt1</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-    <span class="c1"># do training_step with decoder</span>
-    <span class="o">...</span>
-    <span class="n">opt2</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-</code></pre>
-</div>
-
-<p>Note:
-    When <code>accumulate_grad_batches</code> &gt; 1, the loss returned here will be automatically
-    normalized by <code>accumulate_grad_batches</code> internally.</p>
+<p>Returns:
+    torch.Tensor: Computed training loss for backpropagation.</p>
 </div>
 
 
@@ -452,42 +564,20 @@ You can also do fancier things like multiple forward passes or something model s
 
     </div>
     <a class="headerlink" href="#Net.on_train_epoch_end"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Net.on_train_epoch_end-35"><a href="#Net.on_train_epoch_end-35"><span class="linenos">35</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">on_train_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Net.on_train_epoch_end-36"><a href="#Net.on_train_epoch_end-36"><span class="linenos">36</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">:</span>
-</span><span id="Net.on_train_epoch_end-37"><a href="#Net.on_train_epoch_end-37"><span class="linenos">37</span></a>            <span class="n">avg_loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s1">'loss'</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">)</span>
-</span><span id="Net.on_train_epoch_end-38"><a href="#Net.on_train_epoch_end-38"><span class="linenos">38</span></a>            <span class="n">avg_acc</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s1">'acc'</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">)</span>
-</span><span id="Net.on_train_epoch_end-39"><a href="#Net.on_train_epoch_end-39"><span class="linenos">39</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_loss</span><span class="p">)</span>
-</span><span id="Net.on_train_epoch_end-40"><a href="#Net.on_train_epoch_end-40"><span class="linenos">40</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_accs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_acc</span><span class="p">)</span>
-</span><span id="Net.on_train_epoch_end-41"><a href="#Net.on_train_epoch_end-41"><span class="linenos">41</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'epoch_train_loss'</span><span class="p">,</span> <span class="n">avg_loss</span><span class="p">)</span>
-</span><span id="Net.on_train_epoch_end-42"><a href="#Net.on_train_epoch_end-42"><span class="linenos">42</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'epoch_train_acc'</span><span class="p">,</span> <span class="n">avg_acc</span><span class="p">)</span>
-</span><span id="Net.on_train_epoch_end-43"><a href="#Net.on_train_epoch_end-43"><span class="linenos">43</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Net.on_train_epoch_end-75"><a href="#Net.on_train_epoch_end-75"><span class="linenos">75</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">on_train_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Net.on_train_epoch_end-76"><a href="#Net.on_train_epoch_end-76"><span class="linenos">76</span></a><span class="w">        </span><span class="sd">"""Aggregates and logs epoch-level average loss and accuracy."""</span>
+</span><span id="Net.on_train_epoch_end-77"><a href="#Net.on_train_epoch_end-77"><span class="linenos">77</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">:</span>
+</span><span id="Net.on_train_epoch_end-78"><a href="#Net.on_train_epoch_end-78"><span class="linenos">78</span></a>            <span class="n">avg_loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s1">'loss'</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">)</span>
+</span><span id="Net.on_train_epoch_end-79"><a href="#Net.on_train_epoch_end-79"><span class="linenos">79</span></a>            <span class="n">avg_acc</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s1">'acc'</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">)</span>
+</span><span id="Net.on_train_epoch_end-80"><a href="#Net.on_train_epoch_end-80"><span class="linenos">80</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_loss</span><span class="p">)</span>
+</span><span id="Net.on_train_epoch_end-81"><a href="#Net.on_train_epoch_end-81"><span class="linenos">81</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">train_accs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">avg_acc</span><span class="p">)</span>
+</span><span id="Net.on_train_epoch_end-82"><a href="#Net.on_train_epoch_end-82"><span class="linenos">82</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'epoch_train_loss'</span><span class="p">,</span> <span class="n">avg_loss</span><span class="p">)</span>
+</span><span id="Net.on_train_epoch_end-83"><a href="#Net.on_train_epoch_end-83"><span class="linenos">83</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s1">'epoch_train_acc'</span><span class="p">,</span> <span class="n">avg_acc</span><span class="p">)</span>
+</span><span id="Net.on_train_epoch_end-84"><a href="#Net.on_train_epoch_end-84"><span class="linenos">84</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Called in the training loop at the very end of the epoch.</p>
-
-<p>To access all batch outputs at the end of the epoch, you can cache step outputs as an attribute of the
-<code>~pytorch_lightning.LightningModule</code> and access them in this hook:</p>
-
-<div class="pdoc-code codehilite">
-<pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MyLightningModule</span><span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">loss</span> <span class="o">=</span> <span class="o">...</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">loss</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">on_train_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># do something with all training_step outputs, for example:</span>
-        <span class="n">epoch_mean</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">"training_epoch_mean"</span><span class="p">,</span> <span class="n">epoch_mean</span><span class="p">)</span>
-        <span class="c1"># free up the memory</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">training_step_outputs</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-</code></pre>
-</div>
+            <div class="docstring"><p>Aggregates and logs epoch-level average loss and accuracy.</p>
 </div>
 
 
@@ -503,112 +593,20 @@ You can also do fancier things like multiple forward passes or something model s
 
     </div>
     <a class="headerlink" href="#Net.configure_optimizers"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Net.configure_optimizers-45"><a href="#Net.configure_optimizers-45"><span class="linenos">45</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Net.configure_optimizers-46"><a href="#Net.configure_optimizers-46"><span class="linenos">46</span></a>        <span class="k">return</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Net.configure_optimizers-86"><a href="#Net.configure_optimizers-86"><span class="linenos">86</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Net.configure_optimizers-87"><a href="#Net.configure_optimizers-87"><span class="linenos">87</span></a><span class="w">        </span><span class="sd">"""Configures the optimizer for model training.</span>
+</span><span id="Net.configure_optimizers-88"><a href="#Net.configure_optimizers-88"><span class="linenos">88</span></a>
+</span><span id="Net.configure_optimizers-89"><a href="#Net.configure_optimizers-89"><span class="linenos">89</span></a><span class="sd">        Returns:</span>
+</span><span id="Net.configure_optimizers-90"><a href="#Net.configure_optimizers-90"><span class="linenos">90</span></a><span class="sd">            torch.optim.Optimizer: Adam optimizer initialized with model parameters.</span>
+</span><span id="Net.configure_optimizers-91"><a href="#Net.configure_optimizers-91"><span class="linenos">91</span></a><span class="sd">        """</span>
+</span><span id="Net.configure_optimizers-92"><a href="#Net.configure_optimizers-92"><span class="linenos">92</span></a>        <span class="k">return</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Choose what optimizers and learning-rate schedulers to use in your optimization. Normally you'd need one.
-But in the case of GANs or similar you might have multiple. Optimization with multiple optimizers only works in
-the manual optimization mode.</p>
+            <div class="docstring"><p>Configures the optimizer for model training.</p>
 
-<p>Return:
-    Any of these 6 options.</p>
-
-<pre><code>- **Single optimizer**.
-- **List or Tuple** of optimizers.
-- **Two lists** - The first list has multiple optimizers, and the second has multiple LR schedulers
-  (or multiple ``lr_scheduler_config``).
-- **Dictionary**, with an ``"optimizer"`` key, and (optionally) a ``"lr_scheduler"``
-  key whose value is a single LR scheduler or ``lr_scheduler_config``.
-- **None** - Fit will run without any optimizer.
-</code></pre>
-
-<p>The <code>lr_scheduler_config</code> is a dictionary which contains the scheduler and its associated configuration.
-The default configuration is shown below.</p>
-
-<div class="pdoc-code codehilite">
-<pre><span></span><code><span class="n">lr_scheduler_config</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="c1"># REQUIRED: The scheduler instance</span>
-    <span class="s2">"scheduler"</span><span class="p">:</span> <span class="n">lr_scheduler</span><span class="p">,</span>
-    <span class="c1"># The unit of the scheduler's step size, could also be 'step'.</span>
-    <span class="c1"># 'epoch' updates the scheduler on epoch end whereas 'step'</span>
-    <span class="c1"># updates it after a optimizer update.</span>
-    <span class="s2">"interval"</span><span class="p">:</span> <span class="s2">"epoch"</span><span class="p">,</span>
-    <span class="c1"># How many epochs/steps should pass between calls to</span>
-    <span class="c1"># `scheduler.step()`. 1 corresponds to updating the learning</span>
-    <span class="c1"># rate after every epoch/step.</span>
-    <span class="s2">"frequency"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="c1"># Metric to monitor for schedulers like `ReduceLROnPlateau`</span>
-    <span class="s2">"monitor"</span><span class="p">:</span> <span class="s2">"val_loss"</span><span class="p">,</span>
-    <span class="c1"># If set to `True`, will enforce that the value specified 'monitor'</span>
-    <span class="c1"># is available when the scheduler is updated, thus stopping</span>
-    <span class="c1"># training if not found. If set to `False`, it will only produce a warning</span>
-    <span class="s2">"strict"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="c1"># If using the `LearningRateMonitor` callback to monitor the</span>
-    <span class="c1"># learning rate progress, this keyword can be used to specify</span>
-    <span class="c1"># a custom logged name</span>
-    <span class="s2">"name"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">}</span>
-</code></pre>
-</div>
-
-<p>When there are schedulers in which the <code>.step()</code> method is conditioned on a value, such as the
-<code>torch.optim.lr_scheduler.ReduceLROnPlateau</code> scheduler, Lightning requires that the
-<code>lr_scheduler_config</code> contains the keyword <code>"monitor"</code> set to the metric name that the scheduler
-should be conditioned on.</p>
-
-<p>.. testcode::</p>
-
-<pre><code># The ReduceLROnPlateau scheduler requires a monitor
-def configure_optimizers(self):
-    optimizer = Adam(...)
-    return {
-        "optimizer": optimizer,
-        "lr_scheduler": {
-            "scheduler": ReduceLROnPlateau(optimizer, ...),
-            "monitor": "metric_to_track",
-            "frequency": "indicates how often the metric is updated",
-            # If "monitor" references validation metrics, then "frequency" should be set to a
-            # multiple of "trainer.check_val_every_n_epoch".
-        },
-    }
-
-
-# In the case of two optimizers, only one using the ReduceLROnPlateau scheduler
-def configure_optimizers(self):
-    optimizer1 = Adam(...)
-    optimizer2 = SGD(...)
-    scheduler1 = ReduceLROnPlateau(optimizer1, ...)
-    scheduler2 = LambdaLR(optimizer2, ...)
-    return (
-        {
-            "optimizer": optimizer1,
-            "lr_scheduler": {
-                "scheduler": scheduler1,
-                "monitor": "metric_to_track",
-            },
-        },
-        {"optimizer": optimizer2, "lr_scheduler": scheduler2},
-    )
-</code></pre>
-
-<p>Metrics can be made available to monitor by simply logging it using
-<code>self.log('metric_to_track', metric_val)</code> in your <code>~pytorch_lightning.core.LightningModule</code>.</p>
-
-<p>Note:
-    Some things to know:</p>
-
-<pre><code>- Lightning calls ``.backward()`` and ``.step()`` automatically in case of automatic optimization.
-- If a learning rate scheduler is specified in ``configure_optimizers()`` with key
-  ``"interval"`` (default "epoch") in the scheduler configuration, Lightning will call
-  the scheduler's ``.step()`` method automatically in case of automatic optimization.
-- If you use 16-bit precision (``precision=16``), Lightning will automatically handle the optimizer.
-- If you use `torch.optim.LBFGS`, Lightning handles the closure function automatically for you.
-- If you use multiple optimizers, you will have to switch to 'manual optimization' mode and step them
-  yourself.
-- If you need to control how often the optimizer steps, override the `optimizer_step()` hook.
-</code></pre>
+<p>Returns:
+    torch.optim.Optimizer: Adam optimizer initialized with model parameters.</p>
 </div>
 
 
@@ -624,54 +622,41 @@ def configure_optimizers(self):
 
     </div>
     <a class="headerlink" href="#Net.predict_step"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Net.predict_step-48"><a href="#Net.predict_step-48"><span class="linenos">48</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-</span><span id="Net.predict_step-49"><a href="#Net.predict_step-49"><span class="linenos">49</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
-</span><span id="Net.predict_step-50"><a href="#Net.predict_step-50"><span class="linenos">50</span></a>        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</span><span id="Net.predict_step-51"><a href="#Net.predict_step-51"><span class="linenos">51</span></a>        <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="Net.predict_step-52"><a href="#Net.predict_step-52"><span class="linenos">52</span></a>        <span class="n">preds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="Net.predict_step-53"><a href="#Net.predict_step-53"><span class="linenos">53</span></a>        <span class="k">return</span> <span class="p">{</span>
-</span><span id="Net.predict_step-54"><a href="#Net.predict_step-54"><span class="linenos">54</span></a>            <span class="s1">'predictions'</span><span class="p">:</span> <span class="n">preds</span><span class="p">,</span>
-</span><span id="Net.predict_step-55"><a href="#Net.predict_step-55"><span class="linenos">55</span></a>            <span class="s1">'probabilities'</span><span class="p">:</span> <span class="n">probs</span><span class="p">,</span>
-</span><span id="Net.predict_step-56"><a href="#Net.predict_step-56"><span class="linenos">56</span></a>            <span class="s1">'labels'</span><span class="p">:</span> <span class="n">y</span><span class="p">,</span>
-</span><span id="Net.predict_step-57"><a href="#Net.predict_step-57"><span class="linenos">57</span></a>            <span class="s1">'features'</span><span class="p">:</span> <span class="n">x</span>
-</span><span id="Net.predict_step-58"><a href="#Net.predict_step-58"><span class="linenos">58</span></a>        <span class="p">}</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Net.predict_step-94"><a href="#Net.predict_step-94"><span class="linenos"> 94</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+</span><span id="Net.predict_step-95"><a href="#Net.predict_step-95"><span class="linenos"> 95</span></a><span class="w">        </span><span class="sd">"""Runs prediction on a batch during trainer inference.</span>
+</span><span id="Net.predict_step-96"><a href="#Net.predict_step-96"><span class="linenos"> 96</span></a>
+</span><span id="Net.predict_step-97"><a href="#Net.predict_step-97"><span class="linenos"> 97</span></a><span class="sd">        Args:</span>
+</span><span id="Net.predict_step-98"><a href="#Net.predict_step-98"><span class="linenos"> 98</span></a><span class="sd">            batch (tuple[torch.Tensor, torch.Tensor]): Tuple of features and ground-truth labels.</span>
+</span><span id="Net.predict_step-99"><a href="#Net.predict_step-99"><span class="linenos"> 99</span></a><span class="sd">            batch_idx (int): Index of the current batch.</span>
+</span><span id="Net.predict_step-100"><a href="#Net.predict_step-100"><span class="linenos">100</span></a><span class="sd">            dataloader_idx (int, optional): Index of the dataloader. Defaults to 0.</span>
+</span><span id="Net.predict_step-101"><a href="#Net.predict_step-101"><span class="linenos">101</span></a>
+</span><span id="Net.predict_step-102"><a href="#Net.predict_step-102"><span class="linenos">102</span></a><span class="sd">        Returns:</span>
+</span><span id="Net.predict_step-103"><a href="#Net.predict_step-103"><span class="linenos">103</span></a><span class="sd">            dict[str, torch.Tensor]: Dictionary containing 'predictions', 'probabilities',</span>
+</span><span id="Net.predict_step-104"><a href="#Net.predict_step-104"><span class="linenos">104</span></a><span class="sd">                'labels', and 'features'.</span>
+</span><span id="Net.predict_step-105"><a href="#Net.predict_step-105"><span class="linenos">105</span></a><span class="sd">        """</span>
+</span><span id="Net.predict_step-106"><a href="#Net.predict_step-106"><span class="linenos">106</span></a>        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
+</span><span id="Net.predict_step-107"><a href="#Net.predict_step-107"><span class="linenos">107</span></a>        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</span><span id="Net.predict_step-108"><a href="#Net.predict_step-108"><span class="linenos">108</span></a>        <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="Net.predict_step-109"><a href="#Net.predict_step-109"><span class="linenos">109</span></a>        <span class="n">preds</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="Net.predict_step-110"><a href="#Net.predict_step-110"><span class="linenos">110</span></a>        <span class="k">return</span> <span class="p">{</span>
+</span><span id="Net.predict_step-111"><a href="#Net.predict_step-111"><span class="linenos">111</span></a>            <span class="s1">'predictions'</span><span class="p">:</span> <span class="n">preds</span><span class="p">,</span>
+</span><span id="Net.predict_step-112"><a href="#Net.predict_step-112"><span class="linenos">112</span></a>            <span class="s1">'probabilities'</span><span class="p">:</span> <span class="n">probs</span><span class="p">,</span>
+</span><span id="Net.predict_step-113"><a href="#Net.predict_step-113"><span class="linenos">113</span></a>            <span class="s1">'labels'</span><span class="p">:</span> <span class="n">y</span><span class="p">,</span>
+</span><span id="Net.predict_step-114"><a href="#Net.predict_step-114"><span class="linenos">114</span></a>            <span class="s1">'features'</span><span class="p">:</span> <span class="n">x</span>
+</span><span id="Net.predict_step-115"><a href="#Net.predict_step-115"><span class="linenos">115</span></a>        <span class="p">}</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Step function called during <code>~pytorch_lightning.trainer.trainer.Trainer.predict()</code>. By default, it calls
-<code>~pytorch_lightning.core.LightningModule.forward()</code>. Override to add any processing logic.</p>
-
-<p>The <code>~pytorch_lightning.core.LightningModule.predict_step()</code> is used
-to scale inference on multi-devices.</p>
-
-<p>To prevent an OOM error, it is possible to use <code>~pytorch_lightning.callbacks.BasePredictionWriter</code>
-callback to write the predictions to disk or database after each batch or on epoch end.</p>
-
-<p>The <code>~pytorch_lightning.callbacks.BasePredictionWriter</code> should be used while using a spawn
-based accelerator. This happens for <code>Trainer(strategy="ddp_spawn")</code>
-or training on 8 TPU cores with <code>Trainer(accelerator="tpu", devices=8)</code> as predictions won't be returned.</p>
+            <div class="docstring"><p>Runs prediction on a batch during trainer inference.</p>
 
 <p>Args:
-    batch: The output of your data iterable, normally a <code>~torch.utils.data.DataLoader</code>.
-    batch_idx: The index of this batch.
-    dataloader_idx: The index of the dataloader that produced this batch.
-        (only if multiple dataloaders used)</p>
+    batch (tuple[torch.Tensor, torch.Tensor]): Tuple of features and ground-truth labels.
+    batch_idx (int): Index of the current batch.
+    dataloader_idx (int, optional): Index of the dataloader. Defaults to 0.</p>
 
-<p>Return:
-    Predicted output (optional).</p>
-
-<p>Example ::</p>
-
-<pre><code>class MyModel(LightningModule):
-
-    def predict_step(self, batch, batch_idx, dataloader_idx=0):
-        return self(batch)
-
-dm = ...
-model = MyModel()
-trainer = Trainer(accelerator="gpu", devices=2)
-predictions = trainer.predict(model, dm)
-</code></pre>
+<p>Returns:
+    dict[str, torch.Tensor]: Dictionary containing 'predictions', 'probabilities',
+        'labels', and 'features'.</p>
 </div>
 
 
@@ -688,31 +673,72 @@ predictions = trainer.predict(model, dm)
 
     </div>
     <a class="headerlink" href="#train"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="train-59"><a href="#train-59"><span class="linenos">59</span></a><span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">data_module</span><span class="p">,</span><span class="n">model_path</span><span class="p">,</span><span class="n">logger_path</span><span class="p">):</span>
-</span><span id="train-60"><a href="#train-60"><span class="linenos">60</span></a>    <span class="n">net</span> <span class="o">=</span> <span class="n">Net</span><span class="p">()</span>
-</span><span id="train-61"><a href="#train-61"><span class="linenos">61</span></a>    <span class="n">logger</span> <span class="o">=</span> <span class="n">CSVLogger</span><span class="p">(</span><span class="n">save_dir</span><span class="o">=</span><span class="n">logger_path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"train_log"</span><span class="p">)</span>
-</span><span id="train-62"><a href="#train-62"><span class="linenos">62</span></a>    <span class="n">checkpoint_callback</span> <span class="o">=</span> <span class="n">ModelCheckpoint</span><span class="p">(</span>
-</span><span id="train-63"><a href="#train-63"><span class="linenos">63</span></a>        <span class="n">dirpath</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span>
-</span><span id="train-64"><a href="#train-64"><span class="linenos">64</span></a>        <span class="n">filename</span><span class="o">=</span><span class="s1">'best-</span><span class="si">{epoch:02d}</span><span class="s1">-</span><span class="si">{train_loss:.2f}</span><span class="s1">'</span><span class="p">,</span>
-</span><span id="train-65"><a href="#train-65"><span class="linenos">65</span></a>        <span class="n">monitor</span><span class="o">=</span><span class="s1">'train_loss'</span><span class="p">,</span>
-</span><span id="train-66"><a href="#train-66"><span class="linenos">66</span></a>        <span class="n">mode</span><span class="o">=</span><span class="s1">'min'</span><span class="p">,</span>
-</span><span id="train-67"><a href="#train-67"><span class="linenos">67</span></a>        <span class="n">save_top_k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-</span><span id="train-68"><a href="#train-68"><span class="linenos">68</span></a>        <span class="n">save_last</span><span class="o">=</span><span class="kc">True</span>
-</span><span id="train-69"><a href="#train-69"><span class="linenos">69</span></a>    <span class="p">)</span>
-</span><span id="train-70"><a href="#train-70"><span class="linenos">70</span></a>    <span class="n">trainer</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">Trainer</span><span class="p">(</span>
-</span><span id="train-71"><a href="#train-71"><span class="linenos">71</span></a>        <span class="n">max_epochs</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> 
-</span><span id="train-72"><a href="#train-72"><span class="linenos">72</span></a>        <span class="n">callbacks</span><span class="o">=</span><span class="p">[</span><span class="n">checkpoint_callback</span><span class="p">],</span>
-</span><span id="train-73"><a href="#train-73"><span class="linenos">73</span></a>        <span class="n">default_root_dir</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span> 
-</span><span id="train-74"><a href="#train-74"><span class="linenos">74</span></a>        <span class="n">accelerator</span><span class="o">=</span><span class="s2">"cpu"</span><span class="p">,</span> <span class="n">devices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
-</span><span id="train-75"><a href="#train-75"><span class="linenos">75</span></a>        <span class="n">enable_progress_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span id="train-76"><a href="#train-76"><span class="linenos">76</span></a>        <span class="n">logger</span><span class="o">=</span><span class="n">logger</span>
-</span><span id="train-77"><a href="#train-77"><span class="linenos">77</span></a>    <span class="p">)</span>
-</span><span id="train-78"><a href="#train-78"><span class="linenos">78</span></a>    <span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">datamodule</span><span class="o">=</span><span class="n">data_module</span><span class="p">)</span>
-</span><span id="train-79"><a href="#train-79"><span class="linenos">79</span></a>    <span class="k">return</span> <span class="n">trainer</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="train-116"><a href="#train-116"><span class="linenos">116</span></a><span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">data_module</span><span class="p">,</span><span class="n">model_path</span><span class="p">,</span><span class="n">logger_path</span><span class="p">):</span>
+</span><span id="train-117"><a href="#train-117"><span class="linenos">117</span></a><span class="w">    </span><span class="sd">"""Initializes and trains the Net classifier using PyTorch Lightning.</span>
+</span><span id="train-118"><a href="#train-118"><span class="linenos">118</span></a>
+</span><span id="train-119"><a href="#train-119"><span class="linenos">119</span></a><span class="sd">    Configures a CSVLogger, best-model ModelCheckpoint callback, and CPU Trainer,</span>
+</span><span id="train-120"><a href="#train-120"><span class="linenos">120</span></a><span class="sd">    then fits the model for 20 epochs on the provided DataModule.</span>
+</span><span id="train-121"><a href="#train-121"><span class="linenos">121</span></a>
+</span><span id="train-122"><a href="#train-122"><span class="linenos">122</span></a><span class="sd">    Args:</span>
+</span><span id="train-123"><a href="#train-123"><span class="linenos">123</span></a><span class="sd">        data_module (pl.LightningDataModule): Initialized DataModule providing training data.</span>
+</span><span id="train-124"><a href="#train-124"><span class="linenos">124</span></a><span class="sd">        model_path (str): Directory where model checkpoints will be stored.</span>
+</span><span id="train-125"><a href="#train-125"><span class="linenos">125</span></a><span class="sd">        logger_path (str): Directory where CSV training logs will be saved.</span>
+</span><span id="train-126"><a href="#train-126"><span class="linenos">126</span></a>
+</span><span id="train-127"><a href="#train-127"><span class="linenos">127</span></a><span class="sd">    Returns:</span>
+</span><span id="train-128"><a href="#train-128"><span class="linenos">128</span></a><span class="sd">        pl.Trainer: Trained Lightning Trainer instance.</span>
+</span><span id="train-129"><a href="#train-129"><span class="linenos">129</span></a>
+</span><span id="train-130"><a href="#train-130"><span class="linenos">130</span></a><span class="sd">    Example:</span>
+</span><span id="train-131"><a href="#train-131"><span class="linenos">131</span></a><span class="sd">        &gt;&gt;&gt; dm = CSVDataModule("data/benchmark.csv")</span>
+</span><span id="train-132"><a href="#train-132"><span class="linenos">132</span></a><span class="sd">        &gt;&gt;&gt; trainer = train(dm, model_path="models/", logger_path="logs/")</span>
+</span><span id="train-133"><a href="#train-133"><span class="linenos">133</span></a><span class="sd">    """</span>
+</span><span id="train-134"><a href="#train-134"><span class="linenos">134</span></a>    <span class="n">net</span> <span class="o">=</span> <span class="n">Net</span><span class="p">()</span>
+</span><span id="train-135"><a href="#train-135"><span class="linenos">135</span></a>    <span class="n">logger</span> <span class="o">=</span> <span class="n">CSVLogger</span><span class="p">(</span><span class="n">save_dir</span><span class="o">=</span><span class="n">logger_path</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"train_log"</span><span class="p">)</span>
+</span><span id="train-136"><a href="#train-136"><span class="linenos">136</span></a>    <span class="n">checkpoint_callback</span> <span class="o">=</span> <span class="n">ModelCheckpoint</span><span class="p">(</span>
+</span><span id="train-137"><a href="#train-137"><span class="linenos">137</span></a>        <span class="n">dirpath</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span>
+</span><span id="train-138"><a href="#train-138"><span class="linenos">138</span></a>        <span class="n">filename</span><span class="o">=</span><span class="s1">'best-</span><span class="si">{epoch:02d}</span><span class="s1">-</span><span class="si">{train_loss:.2f}</span><span class="s1">'</span><span class="p">,</span>
+</span><span id="train-139"><a href="#train-139"><span class="linenos">139</span></a>        <span class="n">monitor</span><span class="o">=</span><span class="s1">'train_loss'</span><span class="p">,</span>
+</span><span id="train-140"><a href="#train-140"><span class="linenos">140</span></a>        <span class="n">mode</span><span class="o">=</span><span class="s1">'min'</span><span class="p">,</span>
+</span><span id="train-141"><a href="#train-141"><span class="linenos">141</span></a>        <span class="n">save_top_k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+</span><span id="train-142"><a href="#train-142"><span class="linenos">142</span></a>        <span class="n">save_last</span><span class="o">=</span><span class="kc">True</span>
+</span><span id="train-143"><a href="#train-143"><span class="linenos">143</span></a>    <span class="p">)</span>
+</span><span id="train-144"><a href="#train-144"><span class="linenos">144</span></a>    <span class="n">trainer</span> <span class="o">=</span> <span class="n">pl</span><span class="o">.</span><span class="n">Trainer</span><span class="p">(</span>
+</span><span id="train-145"><a href="#train-145"><span class="linenos">145</span></a>        <span class="n">max_epochs</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> 
+</span><span id="train-146"><a href="#train-146"><span class="linenos">146</span></a>        <span class="n">callbacks</span><span class="o">=</span><span class="p">[</span><span class="n">checkpoint_callback</span><span class="p">],</span>
+</span><span id="train-147"><a href="#train-147"><span class="linenos">147</span></a>        <span class="n">default_root_dir</span><span class="o">=</span><span class="n">model_path</span><span class="p">,</span> 
+</span><span id="train-148"><a href="#train-148"><span class="linenos">148</span></a>        <span class="n">accelerator</span><span class="o">=</span><span class="s2">"cpu"</span><span class="p">,</span> <span class="n">devices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+</span><span id="train-149"><a href="#train-149"><span class="linenos">149</span></a>        <span class="n">enable_progress_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="train-150"><a href="#train-150"><span class="linenos">150</span></a>        <span class="n">logger</span><span class="o">=</span><span class="n">logger</span>
+</span><span id="train-151"><a href="#train-151"><span class="linenos">151</span></a>    <span class="p">)</span>
+</span><span id="train-152"><a href="#train-152"><span class="linenos">152</span></a>    <span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">datamodule</span><span class="o">=</span><span class="n">data_module</span><span class="p">)</span>
+</span><span id="train-153"><a href="#train-153"><span class="linenos">153</span></a>    <span class="k">return</span> <span class="n">trainer</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Initializes and trains the Net classifier using PyTorch Lightning.</p>
+
+<p>Configures a CSVLogger, best-model ModelCheckpoint callback, and CPU Trainer,
+then fits the model for 20 epochs on the provided DataModule.</p>
+
+<p>Args:
+    data_module (pl.LightningDataModule): Initialized DataModule providing training data.
+    model_path (str): Directory where model checkpoints will be stored.
+    logger_path (str): Directory where CSV training logs will be saved.</p>
+
+<p>Returns:
+    pl.Trainer: Trained Lightning Trainer instance.</p>
+
+<p>Example:</p>
+
+<blockquote>
+  <blockquote>
+    <blockquote>
+      <p>dm = CSVDataModule("data/benchmark.csv")
+      trainer = train(dm, model_path="models/", logger_path="logs/")</p>
+    </blockquote>
+  </blockquote>
+</blockquote>
+</div>
+
 
                 </section>
     </main>
