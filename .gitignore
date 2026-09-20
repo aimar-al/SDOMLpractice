@@ -1,0 +1,7 @@
+# Checkpoints de Jupyter Notebooks
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# Archivos de datos CSV
+*.csv
+*.CSV
