@@ -2,6 +2,9 @@
 .ipynb_checkpoints/
 */.ipynb_checkpoints/
 
-# Archivos de datos CSV
+# Data files CSV
 *.csv
 *.CSV
+
+#.venv enviroments
+*.venv
