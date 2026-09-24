@@ -8,3 +8,7 @@
 
 #.venv enviroments
 *.venv
+
+# PyTorch Lightning logs
+lightning_logs/
+logs/

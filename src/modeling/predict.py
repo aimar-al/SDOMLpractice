@@ -5,7 +5,10 @@ predictions and class probabilities over a dataset.
 """
 
 import torch
-from modeling.train import Net
+try:
+    from modeling.train import Net
+except ImportError:
+    from .train import Net
 
 def predict(trainer,data_module,path):
     """Loads a saved checkpoint and runs batch inference on a DataModule.

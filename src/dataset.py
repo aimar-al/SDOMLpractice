@@ -16,14 +16,6 @@ class CSVDataset(Dataset):
 
     Extracts statistical text features (e.g. word count, perplexity,
     readability) and binary AI-generation labels from a CSV file.
-
-    Attributes:
-        df (pd.DataFrame): Raw dataframe loaded from the CSV file.
-        transform (callable, optional): Optional transform applied to samples.
-        feature_columns (pd.Index): Selected feature column names.
-        label_column (str): Name of the label column ('is_ai_generated').
-        X (np.ndarray): Preprocessed feature array (float32).
-        y (np.ndarray): Target labels array (int64).
     """
 
     def __init__(self, csv_path="../data/benchmark_ai_detection_multimodel_2026.csv", transform=None):
@@ -33,12 +25,12 @@ class CSVDataset(Dataset):
             csv_path (str): Path to the CSV dataset file.
             transform (callable, optional): Optional data transformation. Defaults to None.
         """
-        self.df = pd.read_csv(csv_path)
-        self.transform = transform
-        self.feature_columns = self.df.columns.drop(['id', 'timestamp', 'is_ai_generated','text_content', 'source_model'])
-        self.label_column = 'is_ai_generated'
-        self.X = pd.get_dummies(self.df[self.feature_columns]).values.astype('float32')
-        self.y = self.df[self.label_column].values.astype('int64')
+        self._df = pd.read_csv(csv_path)
+        self._transform = transform
+        self._feature_columns = self._df.columns.drop(['id', 'timestamp', 'is_ai_generated','text_content', 'source_model'])
+        self._label_column = 'is_ai_generated'
+        self._X = pd.get_dummies(self._df[self._feature_columns]).values.astype('float32')
+        self._y = self._df[self._label_column].values.astype('int64')
         
     def __len__(self):
         """Returns the total number of samples in the dataset.
@@ -46,7 +38,7 @@ class CSVDataset(Dataset):
         Returns:
             int: Number of samples in the dataset.
         """
-        return len(self.df)
+        return len(self._df)
     
     def __getitem__(self, idx):
         """Retrieves the feature tensor and label for a sample at the given index.
@@ -58,9 +50,19 @@ class CSVDataset(Dataset):
             tuple[torch.Tensor, torch.Tensor]: Tuple containing the feature tensor (X)
                 and the target label tensor (y).
         """
-        X = torch.from_numpy(self.X[idx])
-        y = torch.tensor(self.y[idx], dtype=torch.long)
+        X = torch.from_numpy(self._X[idx])
+        y = torch.tensor(self._y[idx], dtype=torch.long)
         return X, y
+
+    @property
+    def y(self):
+        """np.ndarray: Target labels array (int64)."""
+        return self._y
+
+    @property
+    def X(self):
+        """np.ndarray: Preprocessed feature array (float32)."""
+        return self._X
 
 class CSVDataModule(pl.LightningDataModule):
     """PyTorch Lightning DataModule for managing training and prediction DataLoaders.
@@ -83,10 +85,11 @@ class CSVDataModule(pl.LightningDataModule):
             num_workers (int, optional): Number of subprocesses for data loading. Defaults to 8.
         """
         super().__init__()
-        self.data_dir = data_dir
-        self.batch_size = batch_size
-        self.num_workers = num_workers
-        self.transform = transforms.ToTensor()
+        self._data_dir = data_dir
+        self._batch_size = batch_size
+        self._num_workers = num_workers
+        self._transform = transforms.ToTensor()
+        self._train_ds = None
         
     def setup(self, stage=None):
         """Initializes the dataset instance for the requested pipeline stage.
@@ -95,7 +98,7 @@ class CSVDataModule(pl.LightningDataModule):
             stage (str, optional): Stage identifier ('fit', 'validate', 'test', or 'predict').
                 Defaults to None.
         """
-        self.train_ds = CSVDataset(self.data_dir)
+        self._train_ds = CSVDataset(self._data_dir)
     
     def train_dataloader(self, shuffle=True):
         """Builds the training DataLoader.
@@ -107,8 +110,8 @@ class CSVDataModule(pl.LightningDataModule):
             DataLoader: PyTorch DataLoader configured for training.
         """
         return DataLoader(
-            self.train_ds, 
-            batch_size=self.batch_size, 
+            self._train_ds, 
+            batch_size=self._batch_size, 
             num_workers=0, 
             shuffle=shuffle
         )   
@@ -120,4 +123,9 @@ class CSVDataModule(pl.LightningDataModule):
             DataLoader: PyTorch DataLoader configured for inference.
         """
         return self.train_dataloader(shuffle=False)
+
+    @property
+    def train_ds(self):
+        """CSVDataset: Underlying training dataset instance."""
+        return self._train_ds
         

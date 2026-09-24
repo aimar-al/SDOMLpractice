@@ -1,7 +1,7 @@
 [project]
-name = "my_project"
-version = "0.1.0"
-description = "Proyecto de deteccion de texto generado por IA"
+name = "IA generated text Clasiffier"
+version = "0.2.0"
+description = "Training a model to detect IA generated text "
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
