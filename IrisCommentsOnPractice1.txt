@@ -1,4 +1,16 @@
-    - Good folder structure. Minimal but enough
+practice 1: done
+- Good folder structure. Minimal but enough
     - The data visualization notebook should be exported as PDF / HTML into the reports folder. That way, you can keep only the code in the notebook files, making them easier to track with version control. For the .md report, good job! (first group that has read the assignment, apparently...), but in the future the .md is the source, ideally export it as .pdf for convenience of the reader. But good job!
     - Very good graphs for data exploration and model analysis, but  would be nice to include a bit of text in the data exploration notebook. Treat the notebook as a text file, as a report: what are you going to study in each cell, what is your intepretation of the results
     - Code is the part that is a bit lacking. We need something to work on in the next parts of the project, so we need classes and files that import each other. The minimum would be a dataset.py file that is in charge of loading the data, a model.py with the model, and a train.py with the main experiment, plus as many utils / plots etc. files that you consider useful. That way, you can add a new experiment with minimal code, and everything is clearly separated and reusable.
+
+
+
+
+
+practice 2:
+- Documentation looks nice! No empty pages, the most common mistake.
+    - (minor) In many classes (like CSVDataset), most of the attributes would probably be better as private (starting with underscore, "_"), as outside classes should probably not touch them. That would avoid having them show in the documentation without any info.
+    - I believe you are using Google style docstrings, but it seems like pdoc is trying to read them as Numpy style. Right now you can see how all of the attributes are written in a single line, with no formatting (in the HTML).
+    - In the pyproject.toml, remember setting a reasonable project name and updating the version as you implement things.
+    - Remember adding to the gitignore file the lightning_logs folder in notebooks, that shouldn't be uploaded.
