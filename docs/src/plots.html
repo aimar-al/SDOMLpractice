@@ -213,19 +213,21 @@ epoch-wise loss/accuracy progression.</p>
 
             <div class="docstring"><p>Plots and saves the confusion matrix for binary classification.</p>
 
-<p>Args:
-    y_true (array-like): Ground truth binary labels.
-    y_pred (array-like): Predicted binary class labels.
-    path (str): Destination file path to save the generated plot image.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Example:</p>
+<ul>
+<li><strong>y_true (array-like):</strong>  Ground truth binary labels.</li>
+<li><strong>y_pred (array-like):</strong>  Predicted binary class labels.</li>
+<li><strong>path (str):</strong>  Destination file path to save the generated plot image.</li>
+</ul>
+
+<h6 id="example">Example:</h6>
 
 <blockquote>
-  <blockquote>
-    <blockquote>
-      <p>confusion_matrix(y_true, y_pred, "reports/figures/cm.png")</p>
-    </blockquote>
-  </blockquote>
+  <div class="pdoc-code codehilite">
+<pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">confusion_matrix</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="s2">"reports/figures/cm.png"</span><span class="p">)</span>
+</code></pre>
+  </div>
 </blockquote>
 </div>
 
@@ -263,19 +265,21 @@ epoch-wise loss/accuracy progression.</p>
 
             <div class="docstring"><p>Plots and saves the probability calibration curve.</p>
 
-<p>Args:
-    y_true (array-like): Ground truth binary labels.
-    y_prob (array-like): Predicted class probabilities of shape <code>(n_samples, 2)</code>.
-    path (str): Destination file path to save the generated plot image.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Example:</p>
+<ul>
+<li><strong>y_true (array-like):</strong>  Ground truth binary labels.</li>
+<li><strong>y_prob (array-like):</strong>  Predicted class probabilities of shape <code>(n_samples, 2)</code>.</li>
+<li><strong>path (str):</strong>  Destination file path to save the generated plot image.</li>
+</ul>
+
+<h6 id="example">Example:</h6>
 
 <blockquote>
-  <blockquote>
-    <blockquote>
-      <p>calibration_curve(y_true, y_prob, "reports/figures/calibration.png")</p>
-    </blockquote>
-  </blockquote>
+  <div class="pdoc-code codehilite">
+<pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">calibration_curve</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_prob</span><span class="p">,</span> <span class="s2">"reports/figures/calibration.png"</span><span class="p">)</span>
+</code></pre>
+  </div>
 </blockquote>
 </div>
 
@@ -313,19 +317,21 @@ epoch-wise loss/accuracy progression.</p>
 
             <div class="docstring"><p>Plots and saves the Receiver Operating Characteristic (ROC) curve.</p>
 
-<p>Args:
-    y_true (array-like): Ground truth binary labels.
-    y_prob (array-like): Predicted class probabilities of shape <code>(n_samples, 2)</code>.
-    path (str): Destination file path to save the generated plot image.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Example:</p>
+<ul>
+<li><strong>y_true (array-like):</strong>  Ground truth binary labels.</li>
+<li><strong>y_prob (array-like):</strong>  Predicted class probabilities of shape <code>(n_samples, 2)</code>.</li>
+<li><strong>path (str):</strong>  Destination file path to save the generated plot image.</li>
+</ul>
+
+<h6 id="example">Example:</h6>
 
 <blockquote>
-  <blockquote>
-    <blockquote>
-      <p>roc_curve(y_true, y_prob, "reports/figures/roc.png")</p>
-    </blockquote>
-  </blockquote>
+  <div class="pdoc-code codehilite">
+<pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">roc_curve</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_prob</span><span class="p">,</span> <span class="s2">"reports/figures/roc.png"</span><span class="p">)</span>
+</code></pre>
+  </div>
 </blockquote>
 </div>
 
@@ -363,19 +369,21 @@ epoch-wise loss/accuracy progression.</p>
 
             <div class="docstring"><p>Plots and saves the Precision-Recall curve.</p>
 
-<p>Args:
-    y_true (array-like): Ground truth binary labels.
-    y_prob (array-like): Predicted class probabilities of shape <code>(n_samples, 2)</code>.
-    path (str): Destination file path to save the generated plot image.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Example:</p>
+<ul>
+<li><strong>y_true (array-like):</strong>  Ground truth binary labels.</li>
+<li><strong>y_prob (array-like):</strong>  Predicted class probabilities of shape <code>(n_samples, 2)</code>.</li>
+<li><strong>path (str):</strong>  Destination file path to save the generated plot image.</li>
+</ul>
+
+<h6 id="example">Example:</h6>
 
 <blockquote>
-  <blockquote>
-    <blockquote>
-      <p>precision_recall_curve(y_true, y_prob, "reports/figures/pr_curve.png")</p>
-    </blockquote>
-  </blockquote>
+  <div class="pdoc-code codehilite">
+<pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">precision_recall_curve</span><span class="p">(</span><span class="n">y_true</span><span class="p">,</span> <span class="n">y_prob</span><span class="p">,</span> <span class="s2">"reports/figures/pr_curve.png"</span><span class="p">)</span>
+</code></pre>
+  </div>
 </blockquote>
 </div>
 
@@ -421,18 +429,20 @@ epoch-wise loss/accuracy progression.</p>
 
             <div class="docstring"><p>Plots and saves epoch-level training loss and accuracy curves from a CSV log.</p>
 
-<p>Args:
-    image_path (str): Destination file path to save the generated figure.
-    log_path (str): File path to the CSV metrics log file generated during training.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Example:</p>
+<ul>
+<li><strong>image_path (str):</strong>  Destination file path to save the generated figure.</li>
+<li><strong>log_path (str):</strong>  File path to the CSV metrics log file generated during training.</li>
+</ul>
+
+<h6 id="example">Example:</h6>
 
 <blockquote>
-  <blockquote>
-    <blockquote>
-      <p>loss_accuracy_curves("reports/figures/curves.png", "logs/train_log/version_0/metrics.csv")</p>
-    </blockquote>
-  </blockquote>
+  <div class="pdoc-code codehilite">
+<pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">loss_accuracy_curves</span><span class="p">(</span><span class="s2">"reports/figures/curves.png"</span><span class="p">,</span> <span class="s2">"logs/train_log/version_0/metrics.csv"</span><span class="p">)</span>
+</code></pre>
+  </div>
 </blockquote>
 </div>
 

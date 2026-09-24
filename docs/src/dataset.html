@@ -310,13 +310,16 @@ via a LightningDataModule.</p>
 <p>Extracts statistical text features (e.g. word count, perplexity,
 readability) and binary AI-generation labels from a CSV file.</p>
 
-<p>Attributes:
-    df (pd.DataFrame): Raw dataframe loaded from the CSV file.
-    transform (callable, optional): Optional transform applied to samples.
-    feature_columns (pd.Index): Selected feature column names.
-    label_column (str): Name of the label column ('is_ai_generated').
-    X (np.ndarray): Preprocessed feature array (float32).
-    y (np.ndarray): Target labels array (int64).</p>
+<h6 id="attributes">Attributes:</h6>
+
+<ul>
+<li><strong>df (pd.DataFrame):</strong>  Raw dataframe loaded from the CSV file.</li>
+<li><strong>transform (callable, optional):</strong>  Optional transform applied to samples.</li>
+<li><strong>feature_columns (pd.Index):</strong>  Selected feature column names.</li>
+<li><strong>label_column (str):</strong>  Name of the label column ('is_ai_generated').</li>
+<li><strong>X (np.ndarray):</strong>  Preprocessed feature array (float32).</li>
+<li><strong>y (np.ndarray):</strong>  Target labels array (int64).</li>
+</ul>
 </div>
 
 
@@ -348,9 +351,12 @@ readability) and binary AI-generation labels from a CSV file.</p>
 
             <div class="docstring"><p>Initializes the dataset from a CSV file.</p>
 
-<p>Args:
-    csv_path (str): Path to the CSV dataset file.
-    transform (callable, optional): Optional data transformation. Defaults to None.</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>csv_path (str):</strong>  Path to the CSV dataset file.</li>
+<li><strong>transform (callable, optional):</strong>  Optional data transformation. Defaults to None.</li>
+</ul>
 </div>
 
 
@@ -499,16 +505,15 @@ readability) and binary AI-generation labels from a CSV file.</p>
 <p>Encapsulates dataset preparation and DataLoader instantiation for model training
 and inference pipelines.</p>
 
-<p>Example:</p>
+<h6 id="example">Example:</h6>
 
 <blockquote>
-  <blockquote>
-    <blockquote>
-      <p>data_module = CSVDataModule(data_dir="data/dataset.csv", batch_size=32)
-      data_module.setup()
-      loader = data_module.train_dataloader()</p>
-    </blockquote>
-  </blockquote>
+  <div class="pdoc-code codehilite">
+<pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">data_module</span> <span class="o">=</span> <span class="n">CSVDataModule</span><span class="p">(</span><span class="n">data_dir</span><span class="o">=</span><span class="s2">"data/dataset.csv"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_module</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">loader</span> <span class="o">=</span> <span class="n">data_module</span><span class="o">.</span><span class="n">train_dataloader</span><span class="p">()</span>
+</code></pre>
+  </div>
 </blockquote>
 </div>
 
@@ -541,10 +546,13 @@ and inference pipelines.</p>
 
             <div class="docstring"><p>Initializes the DataModule.</p>
 
-<p>Args:
-    data_dir (str): Path to the CSV dataset file.
-    batch_size (int, optional): Batch size for dataloaders. Defaults to 64.
-    num_workers (int, optional): Number of subprocesses for data loading. Defaults to 8.</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>data_dir (str):</strong>  Path to the CSV dataset file.</li>
+<li><strong>batch_size (int, optional):</strong>  Batch size for dataloaders. Defaults to 64.</li>
+<li><strong>num_workers (int, optional):</strong>  Number of subprocesses for data loading. Defaults to 8.</li>
+</ul>
 </div>
 
 
@@ -617,9 +625,12 @@ and inference pipelines.</p>
 
             <div class="docstring"><p>Initializes the dataset instance for the requested pipeline stage.</p>
 
-<p>Args:
-    stage (str, optional): Stage identifier ('fit', 'validate', 'test', or 'predict').
-        Defaults to None.</p>
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>stage (str, optional):</strong>  Stage identifier ('fit', 'validate', 'test', or 'predict').
+Defaults to None.</li>
+</ul>
 </div>
 
 
@@ -655,11 +666,17 @@ and inference pipelines.</p>
 
             <div class="docstring"><p>Builds the training DataLoader.</p>
 
-<p>Args:
-    shuffle (bool, optional): Whether to shuffle samples each epoch. Defaults to True.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    DataLoader: PyTorch DataLoader configured for training.</p>
+<ul>
+<li><strong>shuffle (bool, optional):</strong>  Whether to shuffle samples each epoch. Defaults to True.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>DataLoader: PyTorch DataLoader configured for training.</p>
+</blockquote>
 </div>
 
 
@@ -687,8 +704,11 @@ and inference pipelines.</p>
 
             <div class="docstring"><p>Builds the prediction DataLoader with shuffling disabled.</p>
 
-<p>Returns:
-    DataLoader: PyTorch DataLoader configured for inference.</p>
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>DataLoader: PyTorch DataLoader configured for inference.</p>
+</blockquote>
 </div>
 
 

@@ -374,12 +374,15 @@ perceptron classifier, as well as the <code><a href="#train">train</a></code> ro
 <p>Consists of an input linear layer (10 inputs -> 64 hidden units), ReLU activation,
 and a final linear layer producing binary classification logits (2 outputs).</p>
 
-<p>Attributes:
-    l1 (nn.Sequential): Sequential feed-forward layers.
-    loss_fn (nn.CrossEntropyLoss): Cross-entropy loss function.
-    train_losses (list[float]): History of epoch average training losses.
-    train_accs (list[float]): History of epoch average training accuracies.
-    training_step_outputs (list[dict]): Temporary metric container for step-level outputs.</p>
+<h6 id="attributes">Attributes:</h6>
+
+<ul>
+<li><strong>l1 (nn.Sequential):</strong>  Sequential feed-forward layers.</li>
+<li><strong>loss_fn (nn.CrossEntropyLoss):</strong>  Cross-entropy loss function.</li>
+<li><strong>train_losses (list[float]):</strong>  History of epoch average training losses.</li>
+<li><strong>train_accs (list[float]):</strong>  History of epoch average training accuracies.</li>
+<li><strong>training_step_outputs (list[dict]):</strong>  Temporary metric container for step-level outputs.</li>
+</ul>
 </div>
 
 
@@ -490,11 +493,17 @@ and a final linear layer producing binary classification logits (2 outputs).</p>
 
             <div class="docstring"><p>Performs a forward pass through the network.</p>
 
-<p>Args:
-    x (torch.Tensor): Input feature tensor of shape <code>(batch_size, 10)</code>.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    torch.Tensor: Unnormalized output logits of shape <code>(batch_size, 2)</code>.</p>
+<ul>
+<li><strong>x (torch.Tensor):</strong>  Input feature tensor of shape <code>(batch_size, 10)</code>.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>torch.Tensor: Unnormalized output logits of shape <code>(batch_size, 2)</code>.</p>
+</blockquote>
 </div>
 
 
@@ -543,12 +552,18 @@ and a final linear layer producing binary classification logits (2 outputs).</p>
 <p>Computes Cross-Entropy loss and accuracy, logs step and epoch values,
 and records batch metrics.</p>
 
-<p>Args:
-    batch (tuple[torch.Tensor, torch.Tensor]): Tuple containing batch features and labels.
-    batch_idx (int): Index of the current batch.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    torch.Tensor: Computed training loss for backpropagation.</p>
+<ul>
+<li><strong>batch (tuple[torch.Tensor, torch.Tensor]):</strong>  Tuple containing batch features and labels.</li>
+<li><strong>batch_idx (int):</strong>  Index of the current batch.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>torch.Tensor: Computed training loss for backpropagation.</p>
+</blockquote>
 </div>
 
 
@@ -605,8 +620,11 @@ and records batch metrics.</p>
 
             <div class="docstring"><p>Configures the optimizer for model training.</p>
 
-<p>Returns:
-    torch.optim.Optimizer: Adam optimizer initialized with model parameters.</p>
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>torch.optim.Optimizer: Adam optimizer initialized with model parameters.</p>
+</blockquote>
 </div>
 
 
@@ -649,14 +667,20 @@ and records batch metrics.</p>
 
             <div class="docstring"><p>Runs prediction on a batch during trainer inference.</p>
 
-<p>Args:
-    batch (tuple[torch.Tensor, torch.Tensor]): Tuple of features and ground-truth labels.
-    batch_idx (int): Index of the current batch.
-    dataloader_idx (int, optional): Index of the dataloader. Defaults to 0.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    dict[str, torch.Tensor]: Dictionary containing 'predictions', 'probabilities',
-        'labels', and 'features'.</p>
+<ul>
+<li><strong>batch (tuple[torch.Tensor, torch.Tensor]):</strong>  Tuple of features and ground-truth labels.</li>
+<li><strong>batch_idx (int):</strong>  Index of the current batch.</li>
+<li><strong>dataloader_idx (int, optional):</strong>  Index of the dataloader. Defaults to 0.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>dict[str, torch.Tensor]: Dictionary containing 'predictions', 'probabilities',
+      'labels', and 'features'.</p>
+</blockquote>
 </div>
 
 
@@ -719,23 +743,28 @@ and records batch metrics.</p>
 <p>Configures a CSVLogger, best-model ModelCheckpoint callback, and CPU Trainer,
 then fits the model for 20 epochs on the provided DataModule.</p>
 
-<p>Args:
-    data_module (pl.LightningDataModule): Initialized DataModule providing training data.
-    model_path (str): Directory where model checkpoints will be stored.
-    logger_path (str): Directory where CSV training logs will be saved.</p>
+<h6 id="arguments">Arguments:</h6>
 
-<p>Returns:
-    pl.Trainer: Trained Lightning Trainer instance.</p>
+<ul>
+<li><strong>data_module (pl.LightningDataModule):</strong>  Initialized DataModule providing training data.</li>
+<li><strong>model_path (str):</strong>  Directory where model checkpoints will be stored.</li>
+<li><strong>logger_path (str):</strong>  Directory where CSV training logs will be saved.</li>
+</ul>
 
-<p>Example:</p>
+<h6 id="returns">Returns:</h6>
 
 <blockquote>
-  <blockquote>
-    <blockquote>
-      <p>dm = CSVDataModule("data/benchmark.csv")
-      trainer = train(dm, model_path="models/", logger_path="logs/")</p>
-    </blockquote>
-  </blockquote>
+  <p>pl.Trainer: Trained Lightning Trainer instance.</p>
+</blockquote>
+
+<h6 id="example">Example:</h6>
+
+<blockquote>
+  <div class="pdoc-code codehilite">
+<pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">dm</span> <span class="o">=</span> <span class="n">CSVDataModule</span><span class="p">(</span><span class="s2">"data/benchmark.csv"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">trainer</span> <span class="o">=</span> <span class="n">train</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span> <span class="n">model_path</span><span class="o">=</span><span class="s2">"models/"</span><span class="p">,</span> <span class="n">logger_path</span><span class="o">=</span><span class="s2">"logs/"</span><span class="p">)</span>
+</code></pre>
+  </div>
 </blockquote>
 </div>
 

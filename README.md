@@ -9,6 +9,12 @@ This project has a machine learning model to check if a text was written by a hu
 The auto-generated HTML documentation for the project's source code is published and automatically updated via GitHub Pages. You can explore the modules, classes, and functions here:
  **[View API Documentation](https://aimar-al.github.io/SDOMLpractice/src.html)**
 
+To re-generate the documentation locally using Google docstring style:
+```bash
+uv run pdoc -d google -o docs src
+```
+
+
 ## Data Source
 We trained the model using the [benchmark_ai_detection_multimodel_2026.csv](https://www.kaggle.com/datasets/bertnardomariouskono/ai-generated-text-detection-multi-model) dataset. 
 This data includes text features like:
