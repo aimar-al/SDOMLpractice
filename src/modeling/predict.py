@@ -31,3 +31,26 @@ def predict(trainer,data_module,path):
     y_pred = torch.cat([pred['predictions'] for pred in predictions])
     y_prob = torch.cat([prob['probabilities'] for prob in predictions])
     return y_pred, y_prob
+
+def predict_single(net, x_features):
+    """Predicts class and probabilities for a single sample.
+
+    Args:
+        net (Net): Trained Net model instance.
+        x_features (torch.Tensor or numpy.ndarray): Feature vector of shape (10,) or (1, 10).
+
+    Returns:
+        tuple[int, list[float]]: Predicted class (0=Human, 1=AI) and probabilities [prob_human, prob_ai].
+    """
+    net.eval()
+    if not isinstance(x_features, torch.Tensor):
+        x_tensor = torch.tensor(x_features, dtype=torch.float32)
+    else:
+        x_tensor = x_features.clone().detach().float()
+    if x_tensor.ndim == 1:
+        x_tensor = x_tensor.unsqueeze(0)
+    with torch.no_grad():
+        logits = net(x_tensor)
+        probs = torch.softmax(logits, dim=1)[0].tolist()
+        pred = int(torch.argmax(logits, dim=1).item())
+    return pred, probs

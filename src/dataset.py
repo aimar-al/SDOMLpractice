@@ -5,11 +5,24 @@ converting features into tensors, and supplying PyTorch DataLoaders
 via a LightningDataModule.
 """
 
+import os
 import torch
 import pandas as pd
 import pytorch_lightning as pl
 from torch.utils.data import Dataset, DataLoader
 from torchvision import datasets, transforms
+
+def _resolve_data_path(path):
+    if os.path.exists(path):
+        return path
+    for candidate in [
+        os.path.join(os.path.dirname(__file__), "..", "data", "benchmark_ai_detection_multimodel_2026.csv"),
+        "data/benchmark_ai_detection_multimodel_2026.csv",
+        "../data/benchmark_ai_detection_multimodel_2026.csv",
+    ]:
+        if os.path.exists(candidate):
+            return candidate
+    return path
 
 class CSVDataset(Dataset):
     """PyTorch Dataset for tabular AI text detection data.
@@ -25,7 +38,8 @@ class CSVDataset(Dataset):
             csv_path (str): Path to the CSV dataset file.
             transform (callable, optional): Optional data transformation. Defaults to None.
         """
-        self._df = pd.read_csv(csv_path)
+        self._csv_path = _resolve_data_path(csv_path)
+        self._df = pd.read_csv(self._csv_path)
         self._transform = transform
         self._feature_columns = self._df.columns.drop(['id', 'timestamp', 'is_ai_generated','text_content', 'source_model'])
         self._label_column = 'is_ai_generated'
@@ -64,6 +78,11 @@ class CSVDataset(Dataset):
         """np.ndarray: Preprocessed feature array (float32)."""
         return self._X
 
+    @property
+    def df(self):
+        """pd.DataFrame: Raw dataframe loaded from CSV."""
+        return self._df
+
 class CSVDataModule(pl.LightningDataModule):
     """PyTorch Lightning DataModule for managing training and prediction DataLoaders.
 
@@ -85,7 +104,7 @@ class CSVDataModule(pl.LightningDataModule):
             num_workers (int, optional): Number of subprocesses for data loading. Defaults to 8.
         """
         super().__init__()
-        self._data_dir = data_dir
+        self._data_dir = _resolve_data_path(data_dir)
         self._batch_size = batch_size
         self._num_workers = num_workers
         self._transform = transforms.ToTensor()

@@ -1,10 +1,11 @@
 [project]
-name = "IA generated text Clasiffier"
+name = "ai-generated-text-classifier"
 version = "0.2.0"
 description = "Training a model to detect IA generated text "
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
+    "gradio>=6.28.0",
     "lightning>=2.6.5",
     "matplotlib>=3.10.6",
     "notebook>=7.0.0",
