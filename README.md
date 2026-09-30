@@ -38,3 +38,20 @@ Open your terminal in the project folder and run:
 
 ```bash
 uv sync
+```
+## Running with Docker
+You can run the Gradio app inside a Docker container, without needing to install Python or any dependencies on your machine. Only Docker is required.
+
+### 1. Pull the image from Docker Hub
+```bash
+docker pull mikelatsp/ai-text-detector:latest
+```
+### 2. Run the container
+```bash
+docker run --rm -p 7860:7860 mikelatsp/ai-text-detector:latest
+```
+### 3. Open the app
+Once the container is running, open your browser at:
+http://localhost:7860
+
+
