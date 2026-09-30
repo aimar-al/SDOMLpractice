@@ -25,9 +25,11 @@ class Net(pl.LightningModule):
         training_step_outputs (list[dict]): Temporary metric container for step-level outputs.
     """
 
-    def __init__(self):
+    def __init__(self, lr=0.001):
         """Initializes the network layers, loss function, and tracking metrics."""
         super().__init__()
+        self.save_hyperparameters()
+        self.lr = lr
         self.l1 = nn.Sequential(nn.Linear(10, 64), nn.ReLU(), nn.Linear(64, 2))
         self.loss_fn = nn.CrossEntropyLoss()
         self.train_losses = []
@@ -88,7 +90,7 @@ class Net(pl.LightningModule):
         Returns:
             torch.optim.Optimizer: Adam optimizer initialized with model parameters.
         """
-        return optim.Adam(self.parameters())
+        return optim.Adam(self.parameters(), lr=self.lr)
     
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         """Runs prediction on a batch during trainer inference.
@@ -112,16 +114,18 @@ class Net(pl.LightningModule):
             'labels': y,
             'features': x
         }
-def train(data_module,model_path,logger_path):
+def train(data_module, model_path, logger_path, max_epochs=20, lr=0.001):
     """Initializes and trains the Net classifier using PyTorch Lightning.
 
     Configures a CSVLogger, best-model ModelCheckpoint callback, and CPU Trainer,
-    then fits the model for 20 epochs on the provided DataModule.
+    then fits the model on the provided DataModule.
 
     Args:
         data_module (pl.LightningDataModule): Initialized DataModule providing training data.
         model_path (str): Directory where model checkpoints will be stored.
         logger_path (str): Directory where CSV training logs will be saved.
+        max_epochs (int, optional): Number of training epochs. Defaults to 20.
+        lr (float, optional): Learning rate for Adam optimizer. Defaults to 0.001.
 
     Returns:
         pl.Trainer: Trained Lightning Trainer instance.
@@ -130,7 +134,7 @@ def train(data_module,model_path,logger_path):
         >>> dm = CSVDataModule("data/benchmark.csv")
         >>> trainer = train(dm, model_path="models/", logger_path="logs/")
     """
-    net = Net()
+    net = Net(lr=lr)
     logger = CSVLogger(save_dir=logger_path, name="train_log")
     checkpoint_callback = ModelCheckpoint(
         dirpath=model_path,
@@ -141,7 +145,7 @@ def train(data_module,model_path,logger_path):
         save_last=True
     )
     trainer = pl.Trainer(
-        max_epochs=20, 
+        max_epochs=max_epochs, 
         callbacks=[checkpoint_callback],
         default_root_dir=model_path, 
         accelerator="cpu", devices=1, 
