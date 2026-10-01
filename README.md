@@ -44,11 +44,11 @@ You can run the Gradio app inside a Docker container, without needing to install
 
 ### 1. Pull the image from Docker Hub
 ```bash
-docker pull mikelatsp/ai-text-detector:latest
+docker pull mikelatsp/ia-generated-text-classifier:latest
 ```
 ### 2. Run the container
 ```bash
-docker run --rm -p 7860:7860 mikelatsp/ai-text-detector:latest
+docker run --rm -p 7860:7860 mikelatsp/ia-generated-text-classifier:latest
 ```
 ### 3. Open the app
 Once the container is running, open your browser at:
