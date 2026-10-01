@@ -33,6 +33,9 @@
             <li>
                     <a class="function" href="#predict">predict</a>
             </li>
+            <li>
+                    <a class="function" href="#predict_single">predict_single</a>
+            </li>
     </ul>
 
 
@@ -92,6 +95,29 @@ predictions and class probabilities over a dataset.</p>
 </span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>    <span class="n">y_pred</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">pred</span><span class="p">[</span><span class="s1">'predictions'</span><span class="p">]</span> <span class="k">for</span> <span class="n">pred</span> <span class="ow">in</span> <span class="n">predictions</span><span class="p">])</span>
 </span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>    <span class="n">y_prob</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">prob</span><span class="p">[</span><span class="s1">'probabilities'</span><span class="p">]</span> <span class="k">for</span> <span class="n">prob</span> <span class="ow">in</span> <span class="n">predictions</span><span class="p">])</span>
 </span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>    <span class="k">return</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">y_prob</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a><span class="k">def</span><span class="w"> </span><span class="nf">predict_single</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">x_features</span><span class="p">):</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a><span class="w">    </span><span class="sd">"""Predicts class and probabilities for a single sample.</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a><span class="sd">    Args:</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a><span class="sd">        net (Net): Trained Net model instance.</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="sd">        x_features (torch.Tensor or numpy.ndarray): Feature vector of shape (10,) or (1, 10).</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="sd">    Returns:</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="sd">        tuple[int, list[float]]: Predicted class (0=Human, 1=AI) and probabilities [prob_human, prob_ai].</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">    """</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>    <span class="n">net</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_features</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>        <span class="n">x_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">x_features</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>        <span class="n">x_tensor</span> <span class="o">=</span> <span class="n">x_features</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>    <span class="k">if</span> <span class="n">x_tensor</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>        <span class="n">x_tensor</span> <span class="o">=</span> <span class="n">x_tensor</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>        <span class="n">logits</span> <span class="o">=</span> <span class="n">net</span><span class="p">(</span><span class="n">x_tensor</span><span class="p">)</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>        <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>        <span class="n">pred</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>    <span class="k">return</span> <span class="n">pred</span><span class="p">,</span> <span class="n">probs</span>
 </span></pre></div>
 
 
@@ -156,6 +182,60 @@ predictions and class probabilities over a dataset.</p>
 <pre><span></span><code><span class="gp">&gt;&gt;&gt; </span><span class="n">y_pred</span><span class="p">,</span> <span class="n">y_prob</span> <span class="o">=</span> <span class="n">predict</span><span class="p">(</span><span class="n">trainer</span><span class="p">,</span> <span class="n">data_module</span><span class="p">,</span> <span class="s2">"models/best.ckpt"</span><span class="p">)</span>
 </code></pre>
   </div>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="predict_single">
+                            <input id="predict_single-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">predict_single</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">net</span>, </span><span class="param"><span class="n">x_features</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="predict_single-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#predict_single"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="predict_single-36"><a href="#predict_single-36"><span class="linenos">36</span></a><span class="k">def</span><span class="w"> </span><span class="nf">predict_single</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">x_features</span><span class="p">):</span>
+</span><span id="predict_single-37"><a href="#predict_single-37"><span class="linenos">37</span></a><span class="w">    </span><span class="sd">"""Predicts class and probabilities for a single sample.</span>
+</span><span id="predict_single-38"><a href="#predict_single-38"><span class="linenos">38</span></a>
+</span><span id="predict_single-39"><a href="#predict_single-39"><span class="linenos">39</span></a><span class="sd">    Args:</span>
+</span><span id="predict_single-40"><a href="#predict_single-40"><span class="linenos">40</span></a><span class="sd">        net (Net): Trained Net model instance.</span>
+</span><span id="predict_single-41"><a href="#predict_single-41"><span class="linenos">41</span></a><span class="sd">        x_features (torch.Tensor or numpy.ndarray): Feature vector of shape (10,) or (1, 10).</span>
+</span><span id="predict_single-42"><a href="#predict_single-42"><span class="linenos">42</span></a>
+</span><span id="predict_single-43"><a href="#predict_single-43"><span class="linenos">43</span></a><span class="sd">    Returns:</span>
+</span><span id="predict_single-44"><a href="#predict_single-44"><span class="linenos">44</span></a><span class="sd">        tuple[int, list[float]]: Predicted class (0=Human, 1=AI) and probabilities [prob_human, prob_ai].</span>
+</span><span id="predict_single-45"><a href="#predict_single-45"><span class="linenos">45</span></a><span class="sd">    """</span>
+</span><span id="predict_single-46"><a href="#predict_single-46"><span class="linenos">46</span></a>    <span class="n">net</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+</span><span id="predict_single-47"><a href="#predict_single-47"><span class="linenos">47</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x_features</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+</span><span id="predict_single-48"><a href="#predict_single-48"><span class="linenos">48</span></a>        <span class="n">x_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">x_features</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+</span><span id="predict_single-49"><a href="#predict_single-49"><span class="linenos">49</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="predict_single-50"><a href="#predict_single-50"><span class="linenos">50</span></a>        <span class="n">x_tensor</span> <span class="o">=</span> <span class="n">x_features</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">float</span><span class="p">()</span>
+</span><span id="predict_single-51"><a href="#predict_single-51"><span class="linenos">51</span></a>    <span class="k">if</span> <span class="n">x_tensor</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="predict_single-52"><a href="#predict_single-52"><span class="linenos">52</span></a>        <span class="n">x_tensor</span> <span class="o">=</span> <span class="n">x_tensor</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</span><span id="predict_single-53"><a href="#predict_single-53"><span class="linenos">53</span></a>    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+</span><span id="predict_single-54"><a href="#predict_single-54"><span class="linenos">54</span></a>        <span class="n">logits</span> <span class="o">=</span> <span class="n">net</span><span class="p">(</span><span class="n">x_tensor</span><span class="p">)</span>
+</span><span id="predict_single-55"><a href="#predict_single-55"><span class="linenos">55</span></a>        <span class="n">probs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+</span><span id="predict_single-56"><a href="#predict_single-56"><span class="linenos">56</span></a>        <span class="n">pred</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+</span><span id="predict_single-57"><a href="#predict_single-57"><span class="linenos">57</span></a>    <span class="k">return</span> <span class="n">pred</span><span class="p">,</span> <span class="n">probs</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Predicts class and probabilities for a single sample.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>net (Net):</strong>  Trained Net model instance.</li>
+<li><strong>x_features (torch.Tensor or numpy.ndarray):</strong>  Feature vector of shape (10,) or (1, 10).</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>tuple[int, list[float]]: Predicted class (0=Human, 1=AI) and probabilities [prob_human, prob_ai].</p>
 </blockquote>
 </div>
 
